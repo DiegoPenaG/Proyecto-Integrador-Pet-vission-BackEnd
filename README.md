@@ -1,6 +1,6 @@
 # 🐾 PetVission — Backend
 
-API REST del sistema VetVission, desarrollada con Java 21 + Spring Boot.
+API REST del sistema PetVission, desarrollada con Java 21 + Spring Boot.
 
 ---
 

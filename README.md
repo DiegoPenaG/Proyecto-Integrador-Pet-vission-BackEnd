@@ -1,12 +1,12 @@
-# 🐾 VetVission — Backend
+# 🐾 PetVission — Backend
 
-API REST del sistema VetVission, desarrollada con Java 17 + Spring Boot.
+API REST del sistema VetVission, desarrollada con Java 21 + Spring Boot.
 
 ---
 
 ## ⚙️ Requisitos previos
 
-- Java 17+
+- Java 21+
 - Maven 3.8+
 - PostgreSQL o cuenta en NeonDB
 
@@ -15,10 +15,10 @@ API REST del sistema VetVission, desarrollada con Java 17 + Spring Boot.
 ## 🚀 Cómo correr el proyecto
 
 1. Clonar el repositorio
-   git clone https://github.com/DiegoPenaG/vetvission-backend
+   git clone https://github.com/DiegoPenaG/Petvission-backend
 
 2. Configurar application.properties
-   spring.datasource.url=jdbc:postgresql://TU_HOST/vetvission
+   spring.datasource.url=jdbc:postgresql://TU_HOST/petvission
    spring.datasource.username=TU_USUARIO
    spring.datasource.password=TU_PASSWORD
    spring.jpa.hibernate.ddl-auto=update
@@ -34,7 +34,7 @@ La API estará disponible en: http://localhost:8080
 
 ## 📁 Estructura del proyecto
 ```
-src/main/java/com/vetvission/
+src/main/java/com/petvission/
 ├── auth/
 │   ├── controller/AuthController.java
 │   ├── service/AuthService.java

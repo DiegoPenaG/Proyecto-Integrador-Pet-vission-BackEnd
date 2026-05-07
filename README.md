@@ -78,4 +78,4 @@ Script completo: `src/main/resources/db/schema.sql`
 ---
 
 ## 🔗 Frontend
-Repositorio: [vetvission-frontend](#)
+Repositorio: [petvission-frontend](#)

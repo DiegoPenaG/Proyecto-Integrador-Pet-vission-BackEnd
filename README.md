@@ -6,58 +6,77 @@ API REST del sistema PetVission, desarrollada con Java 21 + Spring Boot.
 
 ## ⚙️ Requisitos previos
 
-- Java 21+
-- Maven 3.8+
-- PostgreSQL o cuenta en NeonDB
+- Java 21 LTS
+- Maven 3.0.6
+- PostgreSQL 17
+- Variables de entorno configuradas
 
 ---
 
 ## 🚀 Cómo correr el proyecto
 
 1. Clonar el repositorio
-   git clone https://github.com/DiegoPenaG/Petvission-backend
+```bash
+git clone https://github.com/DiegoPenaG/vetvission-backend
+```
 
-2. Configurar application.properties
-   spring.datasource.url=jdbc:postgresql://TU_HOST/petvission
-   spring.datasource.username=TU_USUARIO
-   spring.datasource.password=TU_PASSWORD
-   spring.jpa.hibernate.ddl-auto=update
-   jwt.secret=TU_SECRET_KEY
-   jwt.expiration=86400000
+2. Copiar el archivo de variables de entorno
+```bash
+cp .env.example .env
+```
 
-3. Ejecutar
-   ./mvnw spring-boot:run
+3. Completar los valores en `.env`
+```bash
+DB_URL=jdbc:postgresql://localhost:5432/petvission_db
+DB_USERNAME=tu_usuario
+DB_PASSWORD=tu_password
+JWT_SECRET=tu_clave_secreta
+```
 
-La API estará disponible en: http://localhost:8080
+4. Ejecutar
+```bash
+./mvnw spring-boot:run
+```
+
+La API estará disponible en: `http://localhost:8080`
 
 ---
 
 ## 📁 Estructura del proyecto
+
 ```
 src/main/java/com/petvission/
 │
 ├── PetvissionApplication.java
 │
-├── security/                          ← todo lo de JWT va aquí
+├── security/
 │   ├── config/
-│   │   └── SecurityConfig.java        ← rutas públicas vs protegidas
+│   │   └── SecurityConfig.java
 │   ├── filter/
 │   │   └── JwtAuthenticationFilter.java
 │   └── service/
-│       ├── JwtService.java            ← genera y valida tokens
+│       ├── JwtService.java
 │       └── CustomUserDetailsService.java
 │
-├── auth/                              ← login y registro
+├── auth/
 │   ├── controller/
 │   │   └── AuthController.java
 │   ├── dto/
-│   │   ├── AuthRequestDto.java        ← { email, password }
-│   │   ├── AuthResponseDto.java       ← { token, usuario }
-│   │   └── RegisterRequestDto.java    ← { nombre, email, password, rol }
+│   │   ├── AuthRequestDto.java
+│   │   ├── AuthResponseDto.java
+│   │   └── RegisterRequestDto.java
 │   └── service/
 │       └── AuthService.java
 │
-├── usuario/                           ← gestión de usuarios
+├── rol/
+│   ├── model/
+│   │   └── Rol.java
+│   ├── repository/
+│   │   └── RolRepository.java
+│   └── service/
+│       └── RolService.java
+│
+├── usuario/
 │   ├── controller/
 │   │   └── UsuarioController.java
 │   ├── dto/
@@ -66,12 +85,10 @@ src/main/java/com/petvission/
 │   ├── mapper/
 │   │   └── UsuarioMapper.java
 │   ├── model/
-│   │   ├── Usuario.java               ← tabla USUARIO
-│   │   ├── Rol.java                   ← tabla ROL
-│   │   └── UsuarioVeterinario.java    ← tabla USUARIO_VETERINARIO
+│   │   ├── Usuario.java
+│   │   └── UsuarioVeterinario.java
 │   ├── repository/
 │   │   ├── UsuarioRepository.java
-│   │   ├── RolRepository.java
 │   │   └── UsuarioVeterinarioRepository.java
 │   └── service/
 │       └── UsuarioService.java
@@ -100,9 +117,11 @@ src/main/java/com/petvission/
 │   ├── mapper/
 │   │   └── CitaMapper.java
 │   ├── model/
-│   │   └── Cita.java
+│   │   ├── Cita.java
+│   │   └── Recordatorio.java
 │   ├── repository/
-│   │   └── CitaRepository.java
+│   │   ├── CitaRepository.java
+│   │   └── RecordatorioRepository.java
 │   └── service/
 │       └── CitaService.java
 │
@@ -118,14 +137,12 @@ src/main/java/com/petvission/
 │   │   ├── Atencion.java
 │   │   ├── Receta.java
 │   │   ├── Tratamiento.java
-│   │   ├── HistorialClinico.java
-│   │   └── ArchivoClinco.java
+│   │   └── HistorialClinico.java
 │   ├── repository/
 │   │   ├── AtencionRepository.java
 │   │   ├── RecetaRepository.java
 │   │   ├── TratamientoRepository.java
-│   │   ├── HistorialClinicoRepository.java
-│   │   └── ArchivoClinicoRepository.java
+│   │   └── HistorialClinicoRepository.java
 │   └── service/
 │       └── AtencionService.java
 │
@@ -177,72 +194,72 @@ src/main/java/com/petvission/
 │   ├── model/
 │   │   ├── Pago.java
 │   │   ├── MetodoPago.java
-│   │   ├── Boleta.java
-│   │   ├── BoletaPedido.java
-│   │   └── BoletaAtencion.java
+│   │   └── Boleta.java
 │   ├── repository/
 │   │   ├── PagoRepository.java
 │   │   ├── MetodoPagoRepository.java
-│   │   ├── BoletaRepository.java
-│   │   ├── BoletaPedidoRepository.java
-│   │   └── BoletaAtencionRepository.java
+│   │   └── BoletaRepository.java
 │   └── service/
 │       └── PagoService.java
-│
-├── inventario/
-│   ├── controller/
-│   │   └── InventarioController.java
-│   ├── dto/
-│   │   ├── ProveedorRequestDto.java
-│   │   ├── ProveedorResponseDto.java
-│   │   ├── CompraRequestDto.java
-│   │   ├── CompraResponseDto.java
-│   │   └── MovimientoStockDto.java
-│   ├── mapper/
-│   │   └── InventarioMapper.java
-│   ├── model/
-│   │   ├── Proveedor.java
-│   │   ├── Compra.java
-│   │   ├── DetalleCompra.java
-│   │   └── MovimientoStock.java
-│   ├── repository/
-│   │   ├── ProveedorRepository.java
-│   │   ├── CompraRepository.java
-│   │   ├── DetalleCompraRepository.java
-│   │   └── MovimientoStockRepository.java
-│   └── service/
-│       └── InventarioService.java
 │
 └── shared/
     ├── exception/
     │   ├── GlobalExceptionHandler.java
     │   ├── ResourceNotFoundException.java
     │   └── UnauthorizedException.java
+    ├── health/
+    │   └── HealthController.java
     └── response/
         └── ApiResponse.java
 ```
----
-
-## 📡 Endpoints — Sprint 1
-
-| Método | Ruta | Descripción | Auth |
-|---|---|---|---|
-| POST | /api/auth/register | Registro de usuario | No |
-| POST | /api/auth/login | Login — retorna JWT | No |
-| GET | /api/usuarios/me | Perfil del usuario | JWT |
-| GET | /api/mascotas | Listar mis mascotas | JWT |
-| POST | /api/mascotas | Crear mascota | JWT |
-| PUT | /api/mascotas/{id} | Editar mascota | JWT |
-| DELETE | /api/mascotas/{id} | Eliminar mascota | JWT |
 
 ---
 
-## 🗃️ Base de datos
+## 📡 Endpoints principales
 
-PostgreSQL (NeonDB)  
-Script completo: `src/main/resources/db/schema.sql`
+### Auth — Público
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | /api/auth/register | Registro de usuario |
+| POST | /api/auth/login | Inicio de sesión |
+
+### Veterinaria — Requiere JWT
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | /api/usuarios | Listar usuarios |
+| GET | /api/mascotas/usuario/{id} | Mascotas de un usuario |
+| GET | /api/citas/mascota/{id} | Citas de una mascota |
+| GET | /api/citas/veterinario/{id} | Agenda del veterinario |
+| GET | /api/atenciones/cita/{id} | Atención de una cita |
+| GET | /api/historial/mascota/{id} | Historial de una mascota |
+
+### E-commerce — Requiere JWT
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | /api/productos | Listar productos |
+| GET | /api/pedidos/usuario/{id} | Pedidos de un usuario |
+| GET | /api/pagos/usuario/{id} | Pagos de un usuario |
+
+### Sistema
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | /api/health | Estado del servidor y BD |
+
+---
+
+## 🛠️ Stack
+
+| Tecnología | Versión |
+|---|---|
+| Java | 21 LTS |
+| Spring Boot | Última estable |
+| Spring Security | Incluida |
+| PostgreSQL | 17 |
+| Maven | 3.0.6 |
+| JWT | io.jsonwebtoken |
+| Lombok | Última estable |
 
 ---
 
 ## 🔗 Frontend
-Repositorio: [petvission-frontend](#)
+Repositorio: [vetvission-frontend](#)

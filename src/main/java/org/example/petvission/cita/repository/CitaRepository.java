@@ -1,4 +1,7 @@
 package org.example.petvission.cita.repository;
 
-public interface CitaRepository {
+import org.example.petvission.cita.model.Cita;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CitaRepository extends JpaRepository<Cita, Long> {
 }

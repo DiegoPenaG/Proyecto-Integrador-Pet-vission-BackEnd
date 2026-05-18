@@ -43,7 +43,7 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     /*
      * CITAS DE UN DÍA
      */
-    List<Cita> findByFecha(LocalDate fecha);
+    List<Cita> findByFechaOrderByHoraAsc(LocalDate fecha);
 
     /*
      * CITAS FUTURAS VETERINARIO

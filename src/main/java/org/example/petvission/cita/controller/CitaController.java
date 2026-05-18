@@ -41,6 +41,17 @@ public class CitaController {
     }
 
     /*
+     * DISPONIBILIDAD BÁSICA
+     */
+    @GetMapping("/disponibilidad")
+    public ResponseEntity<?> obtenerDisponibilidadBasica() {
+
+        return ResponseEntity.ok(
+                citaService.obtenerDisponibilidadBasica()
+        );
+    }
+
+    /*
      * CITAS POR USUARIO
      */
     @GetMapping("/usuario/{idUsuario}")
@@ -66,6 +77,21 @@ public class CitaController {
         return ResponseEntity.ok(
                 citaService.obtenerCitasVeterinario(
                         idVeterinario
+                )
+        );
+    }
+
+    /*
+     * CITAS POR FECHA
+     */
+    @GetMapping("/fecha")
+    public ResponseEntity<?> obtenerCitasPorFecha(
+            @RequestParam String fecha
+    ) {
+
+        return ResponseEntity.ok(
+                citaService.obtenerCitasPorFecha(
+                        java.time.LocalDate.parse(fecha)
                 )
         );
     }

@@ -1,15 +1,55 @@
-package org.example.petvission.cita.repository; // Ajusta el package si es org o com según tu proyecto
+package org.example.petvission.cita.repository;
 
 import org.example.petvission.cita.model.Cita;
+import org.example.petvission.cita.model.EstadoCita;
+import org.example.petvission.usuario.model.Usuario;
 import org.example.petvission.usuario.model.UsuarioVeterinario;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
-@Repository
 public interface CitaRepository extends JpaRepository<Cita, Long> {
-    // Esta es la relación técnica que definiste para agendar
-    boolean existsByVeterinarioAndFechaAndHora(UsuarioVeterinario veterinario, LocalDate fecha, LocalTime hora);
+
+    /*
+     * VALIDAR HORARIO OCUPADO
+     */
+    boolean existsByVeterinarioAndFechaAndHora(
+            UsuarioVeterinario veterinario,
+            LocalDate fecha,
+            LocalTime hora
+    );
+
+    /*
+     * CITAS POR VETERINARIO
+     */
+    List<Cita> findByVeterinario_IdVeterinarioOrderByFechaAscHoraAsc(
+            Long idVeterinario
+    );
+
+    /*
+     * CITAS POR USUARIO
+     */
+    List<Cita> findByUsuario_IdOrderByFechaAscHoraAsc(
+            Long idUsuario
+    );
+
+    /*
+     * CITAS POR ESTADO
+     */
+    List<Cita> findByEstado(EstadoCita estado);
+
+    /*
+     * CITAS DE UN DÍA
+     */
+    List<Cita> findByFecha(LocalDate fecha);
+
+    /*
+     * CITAS FUTURAS VETERINARIO
+     */
+    List<Cita> findByVeterinarioAndFechaGreaterThanEqualOrderByFechaAscHoraAsc(
+            UsuarioVeterinario veterinario,
+            LocalDate fecha
+    );
 }

@@ -15,6 +15,62 @@ public class CitaController {
     private final CitaService citaService;
 
     /*
+     * AGENDA GENERAL
+     */
+    @GetMapping("/agenda")
+    public ResponseEntity<?> obtenerAgendaVeterinarios() {
+
+        return ResponseEntity.ok(
+                citaService.obtenerAgendaVeterinarios()
+        );
+    }
+
+    /*
+     * AGENDA MENSUAL VETERINARIO
+     */
+    @GetMapping("/agenda/veterinario/{idVeterinario}")
+    public ResponseEntity<?> obtenerAgendaVeterinario(
+            @PathVariable Long idVeterinario
+    ) {
+
+        return ResponseEntity.ok(
+                citaService.obtenerAgendaMensualVeterinario(
+                        idVeterinario
+                )
+        );
+    }
+
+    /*
+     * CITAS POR USUARIO
+     */
+    @GetMapping("/usuario/{idUsuario}")
+    public ResponseEntity<?> obtenerCitasUsuario(
+            @PathVariable Long idUsuario
+    ) {
+
+        return ResponseEntity.ok(
+                citaService.obtenerCitasPorUsuario(
+                        idUsuario
+                )
+        );
+    }
+
+    /*
+     * CITAS DEL VETERINARIO
+     */
+    @GetMapping("/veterinario/{idVeterinario}")
+    public ResponseEntity<?> obtenerCitasVeterinario(
+            @PathVariable Long idVeterinario
+    ) {
+
+        return ResponseEntity.ok(
+                citaService.obtenerCitasVeterinario(
+                        idVeterinario
+                )
+        );
+    }
+
+    /*
      * CANCELAR CITA
      */
     @PatchMapping("/{id}/cancelar")

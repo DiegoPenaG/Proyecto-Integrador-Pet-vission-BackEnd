@@ -11,6 +11,11 @@ import com.petvission.shared.exception.ResourceNotFoundException;
 import com.petvission.usuario.model.UsuarioVeterinario;
 import com.petvission.usuario.repository.UsuarioVeterinarioRepository;
 import org.springframework.stereotype.Service;
+import com.petvission.cita.dto.CitaRequestDto;
+import com.petvission.cita.dto.CitaResponseDto;
+import com.petvission.cita.mapper.CitaMapper;
+import com.petvission.usuario.model.Usuario;
+import com.petvission.usuario.repository.UsuarioRepository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -24,6 +29,9 @@ public class CitaService {
     private final CitaRepository citaRepository;
 
     private final UsuarioVeterinarioRepository veterinarioRepository;
+
+    private final UsuarioRepository usuarioRepository;
+    private final CitaMapper citaMapper;
 
     /*
      * AGENDAR CITA
@@ -108,10 +116,10 @@ public class CitaService {
             AgendaVeterinarioDto dto =
                     AgendaVeterinarioDto.builder()
                             .idVeterinario(
-                                    veterinario.getIdVeterinario()
+                                    veterinario.getIdUsuario()
                             )
                             .nombreVeterinario(
-                                    veterinario.getUsuario().getName()
+                                    veterinario.getUsuario().getNombres()
                             )
                             .especialidad(
                                     veterinario.getEspecialidad()
@@ -156,7 +164,7 @@ public class CitaService {
 
         List<Cita> citas =
                 citaRepository
-                        .findByUsuario_IdOrderByFechaAscHoraAsc(
+                        .findByUsuario_IdUsuarioOrderByFechaAscHoraAsc(
                                 idUsuario
                         );
 
@@ -165,12 +173,12 @@ public class CitaService {
                 CitaUsuarioDto.builder()
                         .idCita(cita.getIdCita())
                         .nombreCliente(
-                                cita.getUsuario().getName()
+                                cita.getUsuario().getNombres()
                         )
                         .nombreVeterinario(
                                 cita.getVeterinario()
                                         .getUsuario()
-                                        .getName()
+                                        .getNombres()
                         )
                         .fecha(cita.getFecha())
                         .hora(cita.getHora())
@@ -189,7 +197,7 @@ public class CitaService {
     ) {
 
         return citaRepository
-                .findByVeterinario_IdVeterinarioOrderByFechaAscHoraAsc(
+                .findByVeterinario_IdUsuarioOrderByFechaAscHoraAsc(
                         idVeterinario
                 );
     }
@@ -201,6 +209,38 @@ public class CitaService {
     obtenerDisponibilidadBasica() {
 
         return generarHorariosDisponibles();
+    }
+
+    /*
+     * AGENDAR CITA CON DTO
+     */
+    public CitaResponseDto agendarCitaDto(
+            CitaRequestDto dto
+    ) {
+        Usuario usuario = usuarioRepository.findById(dto.getIdUsuario())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        UsuarioVeterinario veterinario = veterinarioRepository.findById(dto.getIdVeterinario())
+                .orElseThrow(() -> new ResourceNotFoundException("Veterinario no encontrado"));
+
+        boolean ocupado = citaRepository.existsByVeterinarioAndFechaAndHora(
+                veterinario, dto.getFecha(), dto.getHora()
+        );
+
+        if (ocupado) {
+            throw new RuntimeException("El veterinario ya tiene una cita en ese horario");
+        }
+
+        Cita cita = Cita.builder()
+                .usuario(usuario)
+                .veterinario(veterinario)
+                .fecha(dto.getFecha())
+                .hora(dto.getHora())
+                .motivo(dto.getMotivo())
+                .estado(EstadoCita.PENDIENTE)
+                .build();
+
+        return citaMapper.toDto(citaRepository.save(cita));
     }
 
     /*

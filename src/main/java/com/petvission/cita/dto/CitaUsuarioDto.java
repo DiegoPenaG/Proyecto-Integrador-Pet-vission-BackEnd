@@ -2,7 +2,7 @@ package com.petvission.cita.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import org.example.petvission.cita.model.EstadoCita;
+import com.petvission.cita.model.EstadoCita;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

@@ -1,7 +1,7 @@
 package com.petvission.horario.controller;
 
 import lombok.RequiredArgsConstructor;
-import com.petvission.horario.repository.Horario;
+import com.petvission.horario.model.Horario;
 import com.petvission.horario.service.HorarioService;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,9 +10,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/horarios")
 @CrossOrigin(origins = "*")
-
 @RequiredArgsConstructor
-
 public class HorarioController {
 
     private final HorarioService horarioService;

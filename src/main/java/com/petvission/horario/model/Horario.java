@@ -2,21 +2,18 @@ package com.petvission.horario.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
-import org.example.petvission.usuario.model.UsuarioVeterinario;
+import com.petvission.usuario.model.UsuarioVeterinario;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
 @Table(name = "horario")
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 public class Horario {
 
     @Id

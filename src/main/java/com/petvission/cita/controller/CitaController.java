@@ -1,12 +1,19 @@
 package com.petvission.cita.controller;
 
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import com.petvission.cita.dto.ReprogramarCitaDto;
 import com.petvission.cita.model.Cita;
 import com.petvission.cita.service.CitaService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.petvission.cita.dto.CitaRequestDto;
+import com.petvission.cita.dto.CitaResponseDto;
+import com.petvission.usuario.model.Usuario;
+import com.petvission.usuario.repository.UsuarioRepository;
+import com.petvission.cita.mapper.CitaMapper;
 
 @RestController
 @RequestMapping("/api/citas")
@@ -122,5 +129,15 @@ public class CitaController {
         return ResponseEntity.ok(
                 citaService.reprogramarCita(id, dto)
         );
+    }
+    /*
+     * AGENDAR CITA
+     */
+    @PostMapping
+    public ResponseEntity<CitaResponseDto> agendarCita(
+            @Valid @RequestBody CitaRequestDto dto
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(citaService.agendarCitaDto(dto));
     }
 }

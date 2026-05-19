@@ -1,36 +1,26 @@
 package com.petvission.horario.repository;
 
-import jakarta.persistence.*;
-import lombok.*;
-
-import org.example.petvission.usuario.model.UsuarioVeterinario;
+import com.petvission.horario.model.Horario;
+import com.petvission.usuario.model.UsuarioVeterinario;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
+import java.util.List;
 
-@Entity
-@Table(name = "horario")
+@Repository
+public interface HorarioRepository
+        extends JpaRepository<Horario, Long> {
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+    List<Horario> findByVeterinario(
+            UsuarioVeterinario veterinario
+    );
 
-public class Horario {
+    List<Horario> findByFecha(LocalDate fecha);
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    List<Horario> findByDisponibleTrue();
 
-    private LocalDate fecha;
-
-    private LocalTime hora;
-
-    @ManyToOne
-    @JoinColumn(name = "id_veterinario", nullable = false)
-    private UsuarioVeterinario veterinario;
-
-    @Builder.Default
-    private Boolean disponible = true;
+    List<Horario> findByVeterinarioAndDisponibleTrue(
+            UsuarioVeterinario veterinario
+    );
 }

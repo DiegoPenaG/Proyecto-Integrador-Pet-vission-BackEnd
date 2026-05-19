@@ -1,15 +1,14 @@
 package com.petvission.horario.service;
 
 import lombok.RequiredArgsConstructor;
-import com.petvission.horario.repository.Horario;
-import org.example.petvission.horario.repository.HorarioRepository;
+import com.petvission.horario.model.Horario;
+import com.petvission.horario.repository.HorarioRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-
 public class HorarioService {
 
     private final HorarioRepository horarioRepository;

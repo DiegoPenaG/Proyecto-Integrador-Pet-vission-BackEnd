@@ -195,6 +195,15 @@ public class CitaService {
     }
 
     /*
+     * DISPONIBILIDAD BÁSICA
+     */
+    public List<AgendaVeterinarioDto.HorarioDisponibleDto>
+    obtenerDisponibilidadBasica() {
+
+        return generarHorariosDisponibles();
+    }
+
+    /*
      * GENERAR HORARIOS
      */
     private List<AgendaVeterinarioDto.HorarioDisponibleDto>
@@ -228,5 +237,13 @@ public class CitaService {
         );
 
         return horarios;
+    }
+
+    public List<Cita> obtenerCitasPorFecha(
+            LocalDate fecha
+    ) {
+
+        return citaRepository
+                .findByFechaOrderByHoraAsc(fecha);
     }
 }

@@ -199,4 +199,4 @@ src/main/java/com/petvission/
 ---
 
 ## 🔗 Frontend
-Repositorio: [vetvission-frontend](https://github.com/DiegoPenaG/Proyecto-Integrador-Pet-vission-BackEnd)
+Repositorio: [vetvission-frontend](https://github.com/DiegoPenaG/Proyecto-Integrador-Pet-vission-FrontEnd)

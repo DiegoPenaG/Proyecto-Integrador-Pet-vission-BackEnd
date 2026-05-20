@@ -232,4 +232,59 @@ Una vez que se agenda una cita, el horario desaparece de la lista de disponibles
 
 ---
 
+## 6. Registro de veterinarios no creaba el registro en `usuario_veterinario`
+
+### Problema
+
+`AuthService.register()` creaba el `Usuario` correctamente pero no creaba
+el registro correspondiente en `usuario_veterinario`. Esto causaba que los
+veterinarios registrados vía `/api/auth/register` no pudieran usar endpoints
+que dependen de `UsuarioVeterinarioRepository`, como horarios y agenda.
+
+### Síntoma
+
+```json
+{
+  "success": false,
+  "message": "Veterinario no encontrado",
+  "data": null
+}
+```
+
+### Solución
+
+En `AuthService.register()`, después de guardar el `Usuario`, se verifica
+el rol y si es `VETERINARIO` se crea automáticamente el registro en
+`usuario_veterinario`:
+
+```java
+if (rol.getNombreRol().name().equals("VETERINARIO")) {
+    UsuarioVeterinario veterinario = UsuarioVeterinario.builder()
+            .idUsuario(usuario.getIdUsuario())
+            .usuario(usuario)
+            .especialidad("General")
+            .build();
+    usuarioVeterinarioRepository.save(veterinario);
+}
+```
+
+### Corrección manual en BD
+
+Los veterinarios creados antes de este fix requieren inserción manual:
+
+```sql
+INSERT INTO usuario_veterinario (id_usuario, especialidad)
+VALUES ({idUsuario}, 'General');
+```
+
+### Lección
+
+Cuando un usuario tiene roles con tablas extendidas, el registro debe
+ser atómico — crear el `Usuario` y su extensión en la misma operación.
+
+
+
+
+---
+
 *Módulo desarrollado por integrante del Escuadrón Alpha Mango · Cohorte 24 · Java Generation Chile*

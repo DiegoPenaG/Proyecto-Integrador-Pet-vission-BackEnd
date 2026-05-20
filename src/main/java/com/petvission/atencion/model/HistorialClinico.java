@@ -64,4 +64,11 @@ public class HistorialClinico {
      */
     @Column(name = "fecha_registro", nullable = false)
     private LocalDateTime fechaRegistro;
+
+    /*
+     * RECETA
+     */
+    @Column(columnDefinition = "TEXT")
+    private String receta;
+    
 }

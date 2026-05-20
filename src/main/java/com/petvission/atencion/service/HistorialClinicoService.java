@@ -27,6 +27,89 @@ public class HistorialClinicoService {
 
     private final UsuarioVeterinarioRepository veterinarioRepository;
 
+     /*
+     * REGISTRAR DIAGNÓSTICO
+     */
+    public HistorialClinicoResponseDto registrarDiagnostico(
+        Long idHistorial,
+        String diagnostico
+    ) {
+
+    HistorialClinico historial = historialRepository
+            .findById(idHistorial)
+            .orElseThrow(() ->
+                    new ResourceNotFoundException(
+                            "Historial clínico no encontrado"
+                    )
+            );
+
+    historial.setDiagnostico(diagnostico);
+
+    HistorialClinico saved =
+            historialRepository.save(historial);
+
+    return HistorialClinicoResponseDto.builder()
+            .idHistorial(saved.getIdHistorial())
+            .nombreMascota(
+                    saved.getMascota().getNombre()
+            )
+            .nombreVeterinario(
+                    saved.getVeterinario()
+                            .getUsuario()
+                            .getNombres()
+            )
+            .diagnostico(saved.getDiagnostico())
+            .tratamiento(saved.getTratamiento())
+            .observaciones(saved.getObservaciones())
+            .peso(saved.getPeso())
+            .fechaRegistro(saved.getFechaRegistro())
+            .build();
+    }
+
+    /*
+    * REGISTRAR TRATAMIENTO
+     */
+    public HistorialClinicoResponseDto registrarTratamiento(
+        Long idHistorial,
+        String tratamiento,
+        String receta
+    ) {
+
+    HistorialClinico historial = historialRepository
+            .findById(idHistorial)
+            .orElseThrow(() ->
+                    new ResourceNotFoundException(
+                            "Historial clínico no encontrado"
+                    )
+            );
+
+    historial.setTratamiento(tratamiento);
+    historial.setReceta(receta);
+
+    HistorialClinico saved =
+            historialRepository.save(historial);
+
+    return HistorialClinicoResponseDto.builder()
+            .idHistorial(saved.getIdHistorial())
+            .nombreMascota(
+                    saved.getMascota().getNombre()
+            )
+            .nombreVeterinario(
+                    saved.getVeterinario()
+                            .getUsuario()
+                            .getNombres()
+            )
+            .diagnostico(saved.getDiagnostico())
+            .tratamiento(saved.getTratamiento())
+            .receta(saved.getReceta())
+            .observaciones(saved.getObservaciones())
+            .peso(saved.getPeso())
+            .fechaRegistro(saved.getFechaRegistro())
+            .build();
+    }
+
+
+
     /*
      * REGISTRAR OBSERVACIÓN MÉDICA
      */

@@ -27,4 +27,6 @@ public class HistorialClinicoResponseDto {
     private BigDecimal peso;
 
     private LocalDateTime fechaRegistro;
+
+    private String receta;
 }

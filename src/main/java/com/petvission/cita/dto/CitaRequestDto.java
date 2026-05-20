@@ -20,6 +20,6 @@ public class CitaRequestDto {
 
     @NotNull(message = "La hora es obligatoria")
     private LocalTime hora;
-
+    private Long idMascota; // sin @NotNull por ahora, es opcional
     private String motivo;
 }

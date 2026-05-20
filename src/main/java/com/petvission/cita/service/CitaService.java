@@ -56,50 +56,60 @@ public class CitaService {
         return citaRepository.save(cita);
     }
 
+
     /*
      * CANCELAR CITA
      */
-    public Cita cancelarCita(Long idCita) {
-
+    public CitaUsuarioDto cancelarCita(Long idCita) {
         Cita cita = citaRepository.findById(idCita)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Cita no encontrada"
-                        )
+                        new ResourceNotFoundException("Cita no encontrada")
                 );
 
         cita.setEstado(EstadoCita.CANCELADA);
+        Cita saved = citaRepository.save(cita);
 
-        return citaRepository.save(cita);
+        return CitaUsuarioDto.builder()
+                .idCita(saved.getIdCita())
+                .nombreCliente(saved.getUsuario().getNombres())
+                .nombreVeterinario(saved.getVeterinario().getUsuario().getNombres())
+                .fecha(saved.getFecha())
+                .hora(saved.getHora())
+                .estado(saved.getEstado())
+                .motivo(saved.getMotivo())
+                .build();
     }
 
     /*
      * REPROGRAMAR CITA
      */
-    public Cita reprogramarCita(
-            Long idCita,
-            ReprogramarCitaDto dto
-    ) {
-
+    public CitaUsuarioDto reprogramarCita(Long idCita, ReprogramarCitaDto dto) {
         Cita cita = citaRepository.findById(idCita)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Cita no encontrada"
-                        )
+                        new ResourceNotFoundException("Cita no encontrada")
                 );
 
         cita.setFecha(dto.getNuevaFecha());
-
         cita.setHora(dto.getNuevaHora());
-
         cita.setEstado(EstadoCita.REPROGRAMADA);
+        Cita saved = citaRepository.save(cita);
 
-        return citaRepository.save(cita);
+        return CitaUsuarioDto.builder()
+                .idCita(saved.getIdCita())
+                .nombreCliente(saved.getUsuario().getNombres())
+                .nombreVeterinario(saved.getVeterinario().getUsuario().getNombres())
+                .fecha(saved.getFecha())
+                .hora(saved.getHora())
+                .estado(saved.getEstado())
+                .motivo(saved.getMotivo())
+                .build();
     }
 
     /*
      * OBTENER AGENDA GENERAL
      */
+
+
     public List<AgendaVeterinarioDto> obtenerAgendaVeterinarios() {
 
         List<UsuarioVeterinario> veterinarios =
@@ -136,10 +146,9 @@ public class CitaService {
     /*
      * DISPONIBILIDAD MENSUAL
      */
-    public List<Cita> obtenerAgendaMensualVeterinario(
+    public List<CitaUsuarioDto> obtenerAgendaMensualVeterinario(
             Long idVeterinario
     ) {
-
         UsuarioVeterinario veterinario =
                 veterinarioRepository.findById(idVeterinario)
                         .orElseThrow(() ->
@@ -152,7 +161,19 @@ public class CitaService {
                 .findByVeterinarioAndFechaGreaterThanEqualOrderByFechaAscHoraAsc(
                         veterinario,
                         LocalDate.now()
-                );
+                )
+                .stream()
+                .map(cita -> CitaUsuarioDto.builder()
+                        .idCita(cita.getIdCita())
+                        .nombreCliente(cita.getUsuario().getNombres())
+                        .nombreVeterinario(cita.getVeterinario().getUsuario().getNombres())
+                        .fecha(cita.getFecha())
+                        .hora(cita.getHora())
+                        .estado(cita.getEstado())
+                        .motivo(cita.getMotivo())
+                        .build()
+                )
+                .toList();
     }
 
     /*
@@ -192,15 +213,27 @@ public class CitaService {
     /*
      * CITAS DEL VETERINARIO
      */
-    public List<Cita> obtenerCitasVeterinario(
-            Long idVeterinario
-    ) {
 
+    /*
+     * CITAS DEL VETERINARIO
+     */
+    public List<CitaUsuarioDto> obtenerCitasVeterinario(Long idVeterinario) {
         return citaRepository
-                .findByVeterinario_IdUsuarioOrderByFechaAscHoraAsc(
-                        idVeterinario
-                );
+                .findByVeterinario_IdUsuarioOrderByFechaAscHoraAsc(idVeterinario)
+                .stream()
+                .map(cita -> CitaUsuarioDto.builder()
+                        .idCita(cita.getIdCita())
+                        .nombreCliente(cita.getUsuario().getNombres())
+                        .nombreVeterinario(cita.getVeterinario().getUsuario().getNombres())
+                        .fecha(cita.getFecha())
+                        .hora(cita.getHora())
+                        .estado(cita.getEstado())
+                        .motivo(cita.getMotivo())
+                        .build()
+                )
+                .toList();
     }
+
 
     /*
      * DISPONIBILIDAD BÁSICA
@@ -279,11 +312,23 @@ public class CitaService {
         return horarios;
     }
 
-    public List<Cita> obtenerCitasPorFecha(
-            LocalDate fecha
-    ) {
-
+    /*
+     * CITAS POR FECHA
+     */
+    public List<CitaUsuarioDto> obtenerCitasPorFecha(LocalDate fecha) {
         return citaRepository
-                .findByFechaOrderByHoraAsc(fecha);
+                .findByFechaOrderByHoraAsc(fecha)
+                .stream()
+                .map(cita -> CitaUsuarioDto.builder()
+                        .idCita(cita.getIdCita())
+                        .nombreCliente(cita.getUsuario().getNombres())
+                        .nombreVeterinario(cita.getVeterinario().getUsuario().getNombres())
+                        .fecha(cita.getFecha())
+                        .hora(cita.getHora())
+                        .estado(cita.getEstado())
+                        .motivo(cita.getMotivo())
+                        .build()
+                )
+                .toList();
     }
 }

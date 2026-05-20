@@ -1,19 +1,22 @@
 package com.petvission.cita.controller;
 
 
+import com.petvission.cita.dto.CitaUsuarioDto;
+import com.petvission.shared.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import com.petvission.cita.dto.ReprogramarCitaDto;
-import com.petvission.cita.model.Cita;
 import com.petvission.cita.service.CitaService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.petvission.cita.dto.CitaRequestDto;
 import com.petvission.cita.dto.CitaResponseDto;
-import com.petvission.usuario.model.Usuario;
-import com.petvission.usuario.repository.UsuarioRepository;
-import com.petvission.cita.mapper.CitaMapper;
+import com.petvission.cita.dto.AgendaVeterinarioDto;
+
+
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/citas")
@@ -25,25 +28,25 @@ public class CitaController {
     /*
      * AGENDA GENERAL
      */
-    @GetMapping("/agenda")
-    public ResponseEntity<?> obtenerAgendaVeterinarios() {
 
+    @GetMapping("/agenda")
+    public ResponseEntity<ApiResponse<List<AgendaVeterinarioDto>>> obtenerAgendaVeterinarios() {
         return ResponseEntity.ok(
-                citaService.obtenerAgendaVeterinarios()
+                ApiResponse.success(citaService.obtenerAgendaVeterinarios())
         );
     }
 
     /*
      * AGENDA MENSUAL VETERINARIO
      */
+
     @GetMapping("/agenda/veterinario/{idVeterinario}")
-    public ResponseEntity<?> obtenerAgendaVeterinario(
+    public ResponseEntity<ApiResponse<List<CitaUsuarioDto>>> obtenerAgendaVeterinario(
             @PathVariable Long idVeterinario
     ) {
-
         return ResponseEntity.ok(
-                citaService.obtenerAgendaMensualVeterinario(
-                        idVeterinario
+                ApiResponse.success(
+                        citaService.obtenerAgendaMensualVeterinario(idVeterinario)
                 )
         );
     }
@@ -77,57 +80,52 @@ public class CitaController {
     /*
      * CITAS DEL VETERINARIO
      */
+
     @GetMapping("/veterinario/{idVeterinario}")
-    public ResponseEntity<?> obtenerCitasVeterinario(
+    public ResponseEntity<ApiResponse<List<CitaUsuarioDto>>> obtenerCitasVeterinario(
             @PathVariable Long idVeterinario
     ) {
-
         return ResponseEntity.ok(
-                citaService.obtenerCitasVeterinario(
-                        idVeterinario
-                )
+                ApiResponse.success(citaService.obtenerCitasVeterinario(idVeterinario))
         );
     }
 
     /*
-     * CITAS POR FECHA
+        * CITAS POR FECHA
      */
     @GetMapping("/fecha")
-    public ResponseEntity<?> obtenerCitasPorFecha(
+    public ResponseEntity<ApiResponse<List<CitaUsuarioDto>>> obtenerCitasPorFecha(
             @RequestParam String fecha
     ) {
-
         return ResponseEntity.ok(
-                citaService.obtenerCitasPorFecha(
-                        java.time.LocalDate.parse(fecha)
+                ApiResponse.success(
+                        citaService.obtenerCitasPorFecha(
+                                java.time.LocalDate.parse(fecha)
+                        )
                 )
         );
     }
 
+
     /*
-     * CANCELAR CITA
+        * CANCELAR CITA
      */
     @PatchMapping("/{id}/cancelar")
-    public ResponseEntity<Cita> cancelarCita(
-            @PathVariable Long id
-    ) {
-
-        return ResponseEntity.ok(
-                citaService.cancelarCita(id)
-        );
+    public ResponseEntity<ApiResponse<CitaUsuarioDto>> cancelarCita(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(citaService.cancelarCita(id)));
     }
 
     /*
-     * REPROGRAMAR CITA
+        * REPROGRAMAR CITA
      */
+
     @PatchMapping("/{id}/reprogramar")
-    public ResponseEntity<Cita> reprogramarCita(
+    public ResponseEntity<ApiResponse<CitaUsuarioDto>> reprogramarCita(
             @PathVariable Long id,
             @RequestBody ReprogramarCitaDto dto
     ) {
-
         return ResponseEntity.ok(
-                citaService.reprogramarCita(id, dto)
+                ApiResponse.success(citaService.reprogramarCita(id, dto))
         );
     }
     /*

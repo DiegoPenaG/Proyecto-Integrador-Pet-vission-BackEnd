@@ -287,7 +287,24 @@ public class CitaService {
 
         return citaMapper.toDto(citaRepository.save(cita));
     }
-
+    /*
+     * TODAS LAS CITAS
+     */
+    public List<CitaUsuarioDto> obtenerTodasLasCitas() {
+        return citaRepository.findAll()
+                .stream()
+                .map(cita -> CitaUsuarioDto.builder()
+                        .idCita(cita.getIdCita())
+                        .nombreCliente(cita.getUsuario().getNombres())
+                        .nombreVeterinario(cita.getVeterinario().getUsuario().getNombres())
+                        .fecha(cita.getFecha())
+                        .hora(cita.getHora())
+                        .estado(cita.getEstado())
+                        .motivo(cita.getMotivo())
+                        .build()
+                )
+                .toList();
+    }
     /*
      * GENERAR HORARIOS
      */

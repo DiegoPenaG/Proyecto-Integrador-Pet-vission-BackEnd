@@ -9,6 +9,7 @@ import com.petvission.cita.dto.ReprogramarCitaDto;
 import com.petvission.cita.service.CitaService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import com.petvission.cita.dto.CitaRequestDto;
 import com.petvission.cita.dto.CitaResponseDto;
@@ -35,7 +36,16 @@ public class CitaController {
                 ApiResponse.success(citaService.obtenerAgendaVeterinarios())
         );
     }
-
+    /*
+     * TODAS LAS CITAS
+     */
+    @GetMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<List<CitaUsuarioDto>>> obtenerTodasLasCitas() {
+        return ResponseEntity.ok(
+                ApiResponse.success(citaService.obtenerTodasLasCitas())
+        );
+    }
     /*
      * AGENDA MENSUAL VETERINARIO
      */

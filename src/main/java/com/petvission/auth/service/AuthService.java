@@ -16,6 +16,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.petvission.usuario.model.UsuarioVeterinario;
+import com.petvission.usuario.repository.UsuarioVeterinarioRepository;
+
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +29,7 @@ public class AuthService {
     private final PasswordEncoder      passwordEncoder;
     private final JwtService           jwtService;
     private final AuthenticationManager authenticationManager;
+    private final UsuarioVeterinarioRepository usuarioVeterinarioRepository;
 
     // ============================================
     // REGISTRO
@@ -56,6 +60,16 @@ public class AuthService {
 
         usuarioRepository.save(usuario);
 
+        // Si el rol es VETERINARIO, crear el registro en usuario_veterinario
+        if (rol.getNombreRol().name().equals("VETERINARIO")) {
+            UsuarioVeterinario veterinario = UsuarioVeterinario.builder()
+                    .idUsuario(usuario.getIdUsuario())
+                    .usuario(usuario)
+                    .especialidad("General")
+                    .build();
+            usuarioVeterinarioRepository.save(veterinario);
+        }
+        
         // Generar token JWT
         String token = jwtService.generarToken(usuario);
 

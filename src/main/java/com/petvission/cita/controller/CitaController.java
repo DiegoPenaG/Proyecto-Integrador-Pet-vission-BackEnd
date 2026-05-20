@@ -12,8 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.petvission.cita.dto.CitaRequestDto;
 import com.petvission.cita.dto.CitaResponseDto;
-import com.petvission.shared.response.ApiResponse;
-import com.petvission.cita.dto.CitaUsuarioDto;
+import com.petvission.cita.dto.AgendaVeterinarioDto;
+
+
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/citas")
@@ -25,25 +28,25 @@ public class CitaController {
     /*
      * AGENDA GENERAL
      */
-    @GetMapping("/agenda")
-    public ResponseEntity<?> obtenerAgendaVeterinarios() {
 
+    @GetMapping("/agenda")
+    public ResponseEntity<ApiResponse<List<AgendaVeterinarioDto>>> obtenerAgendaVeterinarios() {
         return ResponseEntity.ok(
-                citaService.obtenerAgendaVeterinarios()
+                ApiResponse.success(citaService.obtenerAgendaVeterinarios())
         );
     }
 
     /*
      * AGENDA MENSUAL VETERINARIO
      */
+
     @GetMapping("/agenda/veterinario/{idVeterinario}")
-    public ResponseEntity<?> obtenerAgendaVeterinario(
+    public ResponseEntity<ApiResponse<List<CitaUsuarioDto>>> obtenerAgendaVeterinario(
             @PathVariable Long idVeterinario
     ) {
-
         return ResponseEntity.ok(
-                citaService.obtenerAgendaMensualVeterinario(
-                        idVeterinario
+                ApiResponse.success(
+                        citaService.obtenerAgendaMensualVeterinario(idVeterinario)
                 )
         );
     }
@@ -77,78 +80,45 @@ public class CitaController {
     /*
      * CITAS DEL VETERINARIO
      */
+
     @GetMapping("/veterinario/{idVeterinario}")
-    public ResponseEntity<?> obtenerCitasVeterinario(
+    public ResponseEntity<ApiResponse<List<CitaUsuarioDto>>> obtenerCitasVeterinario(
             @PathVariable Long idVeterinario
     ) {
-
         return ResponseEntity.ok(
-                citaService.obtenerCitasVeterinario(
-                        idVeterinario
-                )
+                ApiResponse.success(citaService.obtenerCitasVeterinario(idVeterinario))
         );
     }
 
     /*
-     * CITAS POR FECHA
+        * CITAS POR FECHA
      */
     @GetMapping("/fecha")
-    public ResponseEntity<?> obtenerCitasPorFecha(
+    public ResponseEntity<ApiResponse<List<CitaUsuarioDto>>> obtenerCitasPorFecha(
             @RequestParam String fecha
     ) {
-
         return ResponseEntity.ok(
-                citaService.obtenerCitasPorFecha(
-                        java.time.LocalDate.parse(fecha)
+                ApiResponse.success(
+                        citaService.obtenerCitasPorFecha(
+                                java.time.LocalDate.parse(fecha)
+                        )
                 )
         );
     }
 
+
     /*
-     * CANCELAR CITA
+        * CANCELAR CITA
      */
-    /*
-    *     @PatchMapping("/{id}/cancelar")
-    public ResponseEntity<Cita> cancelarCita(
-            @PathVariable Long id
-    ) {
-
-        return ResponseEntity.ok(
-                citaService.cancelarCita(id)
-        );
-    }
-
-    */
-    // tambien se estandariza por los mismos conflictos, compatibildad con el frontend
-
     @PatchMapping("/{id}/cancelar")
     public ResponseEntity<ApiResponse<CitaUsuarioDto>> cancelarCita(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(citaService.cancelarCita(id)));
     }
-    // necesita que devuelva CitaUsuarioDto para que el frontend pueda actualizar la lista de citas
-    // del usuario sin hacer una nueva consulta a la API, ya que el estado de la cita se actualiza a
-    // CANCELADA y el frontend puede reflejar ese cambio directamente.
-    /*
-     * REPROGRAMAR CITA
-     */
-    // se modifica esta funcion porque el CitaController tiene inconsistencia:
-    // algunos endpoints devuelven ResponseEntity<?> sin el wrapper ApiResponse,
-    // y otros sí lo usan. Por ejemplo cancelarCita devuelve Cita directamente
-    // en vez de ApiResponse<CitaResponseDto>.
-    // Eso causa que en el frontend el manejo de respuestas sea inconsistente.
-    /*
-    @PatchMapping("/{id}/reprogramar")
-    public ResponseEntity<Cita> reprogramarCita(
-            @PathVariable Long id,
-            @RequestBody ReprogramarCitaDto dto
-    ) {
 
-        return ResponseEntity.ok(
-                citaService.reprogramarCita(id, dto)
-        );
-    }
-    */
-    // Esto es una estandarizacion
+    /*
+        * REPROGRAMAR CITA
+     */
+
     @PatchMapping("/{id}/reprogramar")
     public ResponseEntity<ApiResponse<CitaUsuarioDto>> reprogramarCita(
             @PathVariable Long id,

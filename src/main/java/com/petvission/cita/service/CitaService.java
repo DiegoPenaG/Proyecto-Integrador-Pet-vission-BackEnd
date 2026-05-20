@@ -56,28 +56,7 @@ public class CitaService {
         return citaRepository.save(cita);
     }
 
-    /*
-     * CANCELAR CITA
-     */
-    // se modifica para que tenga compatibilidad con el dato que devuelve el controller
-    // cancelarCita y reprogramarCita en el service devuelven Cita (la entidad), pero el controller
-    // ahora espera CitaUsuarioDt. La solución más limpia es modificar ambos métodos en el service
-    // para que devuelvan CitaUsuarioDto usando el mapper que ya existe.
-    /*
-    public Cita cancelarCita(Long idCita) {
 
-        Cita cita = citaRepository.findById(idCita)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Cita no encontrada"
-                        )
-                );
-
-        cita.setEstado(EstadoCita.CANCELADA);
-
-        return citaRepository.save(cita);
-    }
-*/
     /*
      * CANCELAR CITA
      */
@@ -100,33 +79,7 @@ public class CitaService {
                 .motivo(saved.getMotivo())
                 .build();
     }
-    /*
-     * REPROGRAMAR CITA
-     */
-    // esta función también se ve afectada
-    // por el mismo sintoma, como el controller devolvia un dto generico le faltaba informacion
-    /*
-    public Cita reprogramarCita(
-            Long idCita,
-            ReprogramarCitaDto dto
-    ) {
 
-        Cita cita = citaRepository.findById(idCita)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Cita no encontrada"
-                        )
-                );
-
-        cita.setFecha(dto.getNuevaFecha());
-
-        cita.setHora(dto.getNuevaHora());
-
-        cita.setEstado(EstadoCita.REPROGRAMADA);
-
-        return citaRepository.save(cita);
-    }
-    */
     /*
      * REPROGRAMAR CITA
      */
@@ -151,9 +104,12 @@ public class CitaService {
                 .motivo(saved.getMotivo())
                 .build();
     }
+
     /*
      * OBTENER AGENDA GENERAL
      */
+
+
     public List<AgendaVeterinarioDto> obtenerAgendaVeterinarios() {
 
         List<UsuarioVeterinario> veterinarios =
@@ -190,10 +146,9 @@ public class CitaService {
     /*
      * DISPONIBILIDAD MENSUAL
      */
-    public List<Cita> obtenerAgendaMensualVeterinario(
+    public List<CitaUsuarioDto> obtenerAgendaMensualVeterinario(
             Long idVeterinario
     ) {
-
         UsuarioVeterinario veterinario =
                 veterinarioRepository.findById(idVeterinario)
                         .orElseThrow(() ->
@@ -206,7 +161,19 @@ public class CitaService {
                 .findByVeterinarioAndFechaGreaterThanEqualOrderByFechaAscHoraAsc(
                         veterinario,
                         LocalDate.now()
-                );
+                )
+                .stream()
+                .map(cita -> CitaUsuarioDto.builder()
+                        .idCita(cita.getIdCita())
+                        .nombreCliente(cita.getUsuario().getNombres())
+                        .nombreVeterinario(cita.getVeterinario().getUsuario().getNombres())
+                        .fecha(cita.getFecha())
+                        .hora(cita.getHora())
+                        .estado(cita.getEstado())
+                        .motivo(cita.getMotivo())
+                        .build()
+                )
+                .toList();
     }
 
     /*
@@ -246,15 +213,27 @@ public class CitaService {
     /*
      * CITAS DEL VETERINARIO
      */
-    public List<Cita> obtenerCitasVeterinario(
-            Long idVeterinario
-    ) {
 
+    /*
+     * CITAS DEL VETERINARIO
+     */
+    public List<CitaUsuarioDto> obtenerCitasVeterinario(Long idVeterinario) {
         return citaRepository
-                .findByVeterinario_IdUsuarioOrderByFechaAscHoraAsc(
-                        idVeterinario
-                );
+                .findByVeterinario_IdUsuarioOrderByFechaAscHoraAsc(idVeterinario)
+                .stream()
+                .map(cita -> CitaUsuarioDto.builder()
+                        .idCita(cita.getIdCita())
+                        .nombreCliente(cita.getUsuario().getNombres())
+                        .nombreVeterinario(cita.getVeterinario().getUsuario().getNombres())
+                        .fecha(cita.getFecha())
+                        .hora(cita.getHora())
+                        .estado(cita.getEstado())
+                        .motivo(cita.getMotivo())
+                        .build()
+                )
+                .toList();
     }
+
 
     /*
      * DISPONIBILIDAD BÁSICA
@@ -333,11 +312,23 @@ public class CitaService {
         return horarios;
     }
 
-    public List<Cita> obtenerCitasPorFecha(
-            LocalDate fecha
-    ) {
-
+    /*
+     * CITAS POR FECHA
+     */
+    public List<CitaUsuarioDto> obtenerCitasPorFecha(LocalDate fecha) {
         return citaRepository
-                .findByFechaOrderByHoraAsc(fecha);
+                .findByFechaOrderByHoraAsc(fecha)
+                .stream()
+                .map(cita -> CitaUsuarioDto.builder()
+                        .idCita(cita.getIdCita())
+                        .nombreCliente(cita.getUsuario().getNombres())
+                        .nombreVeterinario(cita.getVeterinario().getUsuario().getNombres())
+                        .fecha(cita.getFecha())
+                        .hora(cita.getHora())
+                        .estado(cita.getEstado())
+                        .motivo(cita.getMotivo())
+                        .build()
+                )
+                .toList();
     }
 }

@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "historial_clinico")
@@ -15,6 +16,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"mascota", "veterinario"})
+@EqualsAndHashCode(exclude = {"mascota", "veterinario"})
 public class HistorialClinico {
 
     @Id
@@ -51,7 +54,7 @@ public class HistorialClinico {
     /*
      * OBSERVACIONES
      */
-    @Column(columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String observaciones;
 
     /*
@@ -62,6 +65,11 @@ public class HistorialClinico {
     /*
      * FECHA DEL REGISTRO
      */
-    @Column(name = "fecha_registro", nullable = false)
-    private LocalDateTime fechaRegistro;
+    @Column(name = "fecha_registro", nullable = false, updatable = false)
+    @Builder.Default
+    private LocalDateTime fechaRegistro = LocalDateTime.now();
+
+    @OneToMany(mappedBy = "historialClinico",
+            cascade = CascadeType.ALL)
+    private List<Tratamiento> tratamientos;
 }

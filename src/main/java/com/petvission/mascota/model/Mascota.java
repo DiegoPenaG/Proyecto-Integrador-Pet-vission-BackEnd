@@ -1,5 +1,8 @@
 package com.petvission.mascota.model;
 
+import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.petvission.atencion.model.HistorialClinico;
 import com.petvission.usuario.model.Usuario;
 import jakarta.persistence.*;
 import lombok.*;
@@ -40,4 +43,11 @@ public class Mascota {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
+
+    /*
+     * HISTORIAL CLINICO DE LA MASCOTA
+     */
+    @JsonIgnore
+    @OneToMany(mappedBy = "mascota", cascade = CascadeType.ALL)
+    private List<HistorialClinico> historialesClinicos;
 }

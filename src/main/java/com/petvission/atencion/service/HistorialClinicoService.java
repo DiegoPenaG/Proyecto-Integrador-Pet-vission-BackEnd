@@ -1,8 +1,8 @@
 package com.petvission.atencion.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
+import com.petvission.atencion.mapper.AtencionMapper;
 import org.springframework.stereotype.Service;
 
 import com.petvission.atencion.dto.HistorialClinicoRequestDto;
@@ -142,28 +142,12 @@ public class HistorialClinicoService {
                         .tratamiento(dto.getTratamiento())
                         .observaciones(dto.getObservaciones())
                         .peso(dto.getPeso())
-                        .fechaRegistro(LocalDateTime.now())
                         .build();
 
         HistorialClinico saved =
                 historialRepository.save(historial);
 
-        return HistorialClinicoResponseDto.builder()
-                .idHistorial(saved.getIdHistorial())
-                .nombreMascota(
-                        saved.getMascota().getNombre()
-                )
-                .nombreVeterinario(
-                        saved.getVeterinario()
-                                .getUsuario()
-                                .getNombres()
-                )
-                .diagnostico(saved.getDiagnostico())
-                .tratamiento(saved.getTratamiento())
-                .observaciones(saved.getObservaciones())
-                .peso(saved.getPeso())
-                .fechaRegistro(saved.getFechaRegistro())
-                .build();
+        return AtencionMapper.toDto(saved);
     }
 
     /*
@@ -177,39 +161,7 @@ public class HistorialClinicoService {
                         idMascota
                 )
                 .stream()
-                .map(historial ->
-
-                        HistorialClinicoResponseDto.builder()
-                                .idHistorial(
-                                        historial.getIdHistorial()
-                                )
-                                .nombreMascota(
-                                        historial.getMascota()
-                                                .getNombre()
-                                )
-                                .nombreVeterinario(
-                                        historial.getVeterinario()
-                                                .getUsuario()
-                                                .getNombres()
-                                )
-                                .diagnostico(
-                                        historial.getDiagnostico()
-                                )
-                                .tratamiento(
-                                        historial.getTratamiento()
-                                )
-                                .observaciones(
-                                        historial.getObservaciones()
-                                )
-                                .peso(
-                                        historial.getPeso()
-                                )
-                                .fechaRegistro(
-                                        historial.getFechaRegistro()
-                                )
-                                .build()
-
-                )
+                .map(AtencionMapper::toDto)
                 .toList();
     }
 }

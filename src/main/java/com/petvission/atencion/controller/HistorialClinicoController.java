@@ -20,6 +20,44 @@ public class HistorialClinicoController {
 
     private final HistorialClinicoService historialService;
 
+
+        /*
+    * REGISTRAR DIAGNÓSTICO
+    */
+    @PatchMapping("/{idHistorial}/diagnostico")
+    public ResponseEntity<?> registrarDiagnostico(
+            @PathVariable Long idHistorial,
+            @RequestBody String diagnostico
+    ) {
+
+        return ResponseEntity.ok(
+                historialService.registrarDiagnostico(
+                        idHistorial,
+                        diagnostico
+                )
+        );
+    }
+
+    /*
+    * REGISTRAR TRATAMIENTO
+    */
+    @PatchMapping("/{idHistorial}/tratamiento")
+    public ResponseEntity<?> registrarTratamiento(
+            @PathVariable Long idHistorial,
+            @RequestParam String tratamiento,
+            @RequestParam String receta
+    ) {
+
+        return ResponseEntity.ok(
+                historialService.registrarTratamiento(
+                        idHistorial,
+                        tratamiento,
+                        receta
+                )
+        );
+    }
+
+
     /*
      * REGISTRAR OBSERVACIÓN MÉDICA
      */

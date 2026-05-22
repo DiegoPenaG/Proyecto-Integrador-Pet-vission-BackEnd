@@ -72,4 +72,11 @@ public class HistorialClinico {
     @OneToMany(mappedBy = "historialClinico",
             cascade = CascadeType.ALL)
     private List<Tratamiento> tratamientos;
+    /*
+     * RECETA
+     */
+    @Column(columnDefinition = "TEXT")
+    private String receta;
+    
 }
+

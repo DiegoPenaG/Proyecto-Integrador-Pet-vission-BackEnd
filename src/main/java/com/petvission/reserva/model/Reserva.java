@@ -1,7 +1,13 @@
-package com.petvission.cita.model;
+package com.petvission.reserva.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import com.petvission.usuario.model.Usuario;
 import com.petvission.usuario.model.UsuarioVeterinario;
 
@@ -9,60 +15,56 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "cita")
+@Table(name = "reserva")
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Cita {
+public class Reserva {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_cita")
-    private Long idCita;
+    @Column(name = "id_reserva")
+    private Long idReserva;
 
     /*
-     * CLIENTE (USUARIO QUE RESERVA LA CITA)
+     * CLIENTE
      */
     @ManyToOne
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
 
     /*
-     * VETERINARIO (USUARIO VETERINARIO ASIGNADO)
+     * VETERINARIO
      */
     @ManyToOne
     @JoinColumn(name = "id_veterinario", nullable = false)
     private UsuarioVeterinario veterinario;
 
     /*
-     * FECHA DE LA CITA
+     * FECHA
      */
     @Column(name = "fecha", nullable = false)
     private LocalDate fecha;
 
     /*
-     * HORA DE LA CITA
+     * HORA
      */
     @Column(name = "hora", nullable = false)
     private LocalTime hora;
 
     /*
-     * MOTIVO DE LA CONSULTA
+     * MOTIVO
      */
-    @Column(name = "motivo", nullable = false)
+    @Column(name = "motivo")
     private String motivo;
 
     /*
-     * ESTADO ACTUAL DE LA CITA
+     * ESTADO
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)
-    private EstadoCita estado;
-
-    // Recordatorio
-    // @Column(name = "recordatorio_enviado", nullable = false)
-    // private Boolean recordatorioEnviado = false;
+    private EstadoReserva estado;
 }

@@ -1,6 +1,7 @@
-package com.petvission.cita.model;
+package com.petvission.reserva.repository;
 
 import com.petvission.usuario.model.Usuario;
+import com.petvission.reserva.model.Reserva;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,7 +32,7 @@ public class Recordatorio {
 
     @ManyToOne
     @JoinColumn(name = "id_cita", nullable = false)
-    private Cita cita;
+    private Reserva cita;
 
     @ManyToOne
     @JoinColumn(name = "id_usuario", nullable = false)

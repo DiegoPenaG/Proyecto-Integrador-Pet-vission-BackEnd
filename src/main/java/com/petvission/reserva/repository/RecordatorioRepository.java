@@ -1,4 +1,4 @@
-package com.petvission.cita.repository;
+package com.petvission.reserva.repository;
 
 public interface RecordatorioRepository {
 }

@@ -1,13 +1,20 @@
-package com.petvission.cita.dto;
+package com.petvission.reserva.dto;
 
 import jakarta.validation.constraints.NotNull;
+
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Data
-public class CitaRequestDto {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ReservaRequestDto {
 
     @NotNull(message = "El id del usuario es obligatorio")
     private Long idUsuario;
@@ -20,6 +27,11 @@ public class CitaRequestDto {
 
     @NotNull(message = "La hora es obligatoria")
     private LocalTime hora;
-    private Long idMascota; // sin @NotNull por ahora, es opcional
+
+    /*
+     * OPCIONAL POR AHORA
+     */
+    private Long idMascota;
+
     private String motivo;
 }

@@ -9,8 +9,8 @@ Cada módulo tiene su propio documento detallado.
 
 | Módulo | Documento | Descripción |
 |---|---|---|
-| Citas | [decisions-citas.md](docs/decisions-citas.md) | Estandarización de respuestas, DTOs y referencias circulares |
-| Horario | [decisions-horario.md](docs/decisions-horario.md) | Refactorización del módulo de horarios y conexión con citas |
+| Citas | [decisions-citas.md](decisions-citas.md) | Estandarización de respuestas, DTOs y referencias circulares |
+| Horario | [decisions-horario.md](decisions-horario.md) | Refactorización del módulo de horarios y conexión con citas |
 
 ---
 

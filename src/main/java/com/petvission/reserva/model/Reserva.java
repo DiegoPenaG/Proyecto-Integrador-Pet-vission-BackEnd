@@ -6,6 +6,7 @@ import lombok.*;
 
 import com.petvission.mascota.model.Mascota;
 import com.petvission.servicio.model.Servicio;
+import com.petvission.turno.model.TurnoDetalle;
 import com.petvission.usuario.model.Usuario;
 import com.petvission.usuario.model.UsuarioVeterinario;
 
@@ -53,6 +54,13 @@ public class Reserva {
     @ManyToOne
     @JoinColumn(name = "id_mascota")
     private Mascota mascota;
+
+    /*
+     * TURNO DETALLE (SLOT HORARIO RESERVADO)
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_turno_detalle")
+    private TurnoDetalle turnoDetalle;
 
     /*
      * FECHA

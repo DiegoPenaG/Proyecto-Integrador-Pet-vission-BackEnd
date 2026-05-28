@@ -25,6 +25,9 @@ public class ReservaRequestDto {
     @NotNull(message = "La mascota es obligatoria")
     private Long idMascota;
 
+    @NotNull(message = "El turno detalle es obligatorio")
+    private Long idTurnoDetalle;
+
     @NotNull(message = "La fecha es obligatoria")
     private LocalDate fecha;
 

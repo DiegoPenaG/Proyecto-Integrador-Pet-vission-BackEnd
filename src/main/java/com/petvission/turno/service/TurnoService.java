@@ -17,14 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/*
- * SERVICIO DE TURNOS
- * GESTIONA LA CREACIÓN Y CONSULTA DE TURNOS
- * Y SUS DETALLES (SLOTS HORARIOS).
- * LA LÓGICA DE DISPONIBILIDAD (disponible = false/true)
- * AL CREAR/CANCELAR RESERVAS VIVE EN ReservaService.
- */
-
 @Service
 @RequiredArgsConstructor
 public class TurnoService {
@@ -38,7 +30,6 @@ public class TurnoService {
      * LISTAR TODOS LOS TURNOS
      */
     public List<TurnoResponseDto> listarTodos() {
-
         return turnoRepository.findAll()
                 .stream()
                 .map(turnoMapper::toDto)
@@ -49,7 +40,6 @@ public class TurnoService {
      * LISTAR TURNOS POR VETERINARIO
      */
     public List<TurnoResponseDto> listarPorVeterinario(Long idVeterinario) {
-
         return turnoRepository.findByVeterinario_IdUsuario(idVeterinario)
                 .stream()
                 .map(turnoMapper::toDto)
@@ -60,10 +50,26 @@ public class TurnoService {
      * LISTAR DETALLES DISPONIBLES DE UN TURNO
      */
     public List<TurnoDetalleResponseDto> listarDetallesDisponibles(Long idTurno) {
-
         return turnoDetalleRepository.findByTurno_IdAndDisponibleTrue(idTurno)
                 .stream()
                 .map(turnoMapper::toDetalleDto)
+                .toList();
+    }
+
+    /*
+     * DISPONIBILIDAD POR VETERINARIO
+     * Retorna todos los TurnoDetalle disponibles de un veterinario
+     * incluyendo la fecha del turno padre
+     */
+    public List<TurnoDetalleResponseDto> obtenerDisponibilidadVeterinario(Long idVeterinario) {
+        return turnoDetalleRepository
+                .findByTurno_Veterinario_IdUsuarioAndDisponibleTrue(idVeterinario)
+                .stream()
+                .map(td -> {
+                    TurnoDetalleResponseDto dto = turnoMapper.toDetalleDto(td);
+                    dto.setFecha(td.getTurno().getFecha());
+                    return dto;
+                })
                 .toList();
     }
 
@@ -72,7 +78,6 @@ public class TurnoService {
      */
     @Transactional
     public TurnoResponseDto crear(TurnoRequestDto dto) {
-
         UsuarioVeterinario veterinario = veterinarioRepository
                 .findById(dto.getIdVeterinario())
                 .orElseThrow(() ->
@@ -101,7 +106,6 @@ public class TurnoService {
                 .toList();
 
         turnoGuardado.setDetalles(turnoDetalleRepository.saveAll(detalles));
-
         return turnoMapper.toDto(turnoGuardado);
     }
 
@@ -109,12 +113,10 @@ public class TurnoService {
      * ACTIVAR TURNO
      */
     public TurnoResponseDto activar(Long id) {
-
         Turno turno = turnoRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Turno no encontrado: " + id)
                 );
-
         turno.setActivo(true);
         return turnoMapper.toDto(turnoRepository.save(turno));
     }
@@ -123,12 +125,10 @@ public class TurnoService {
      * DESACTIVAR TURNO
      */
     public TurnoResponseDto desactivar(Long id) {
-
         Turno turno = turnoRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Turno no encontrado: " + id)
                 );
-
         turno.setActivo(false);
         return turnoMapper.toDto(turnoRepository.save(turno));
     }

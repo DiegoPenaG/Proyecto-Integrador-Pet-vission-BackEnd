@@ -39,34 +39,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // 3. Extraer el token sin el prefijo "Bearer "
-        final String token   = authHeader.substring(7);
-        final String correo  = jwtService.extraerUsername(token);
+        final String token = authHeader.substring(7);
 
-        // 4. Si tiene correo y no hay sesión activa, validar el token
-        if (correo != null &&
-                SecurityContextHolder.getContext().getAuthentication() == null) {
+        try {
+            final String correo = jwtService.extraerUsername(token);
 
-            UserDetails userDetails =
-                    userDetailsService.loadUserByUsername(correo);
+            // 4. Si tiene correo y no hay sesión activa, validar el token
+            if (correo != null &&
+                    SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            if (jwtService.validarToken(token, userDetails)) {
+                UserDetails userDetails =
+                        userDetailsService.loadUserByUsername(correo);
 
-                // 5. Crear la autenticación y registrarla en el contexto
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+                if (jwtService.validarToken(token, userDetails)) {
 
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource()
-                                .buildDetails(request)
-                );
+                    // 5. Crear la autenticación y registrarla en el contexto
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
 
-                SecurityContextHolder.getContext()
-                        .setAuthentication(authToken);
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource()
+                                    .buildDetails(request)
+                    );
+
+                    SecurityContextHolder.getContext()
+                            .setAuthentication(authToken);
+                }
             }
+        } catch (Exception e) {
+            // Token expirado, malformado o inválido — se ignora y deja pasar
+            // El endpoint decidirá si requiere autenticación o no
+            SecurityContextHolder.clearContext();
         }
 
         // 6. Continuar con la cadena de filtros

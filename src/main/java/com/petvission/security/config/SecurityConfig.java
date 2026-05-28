@@ -4,6 +4,7 @@ import com.petvission.security.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -31,10 +32,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Rutas públicas — no requieren token
                         .requestMatchers(
                                 "/api/auth/**",
@@ -59,6 +62,8 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
                 "http://127.0.0.1:3000",
                 "http://localhost:3000",
+                "http://127.0.0.1:5173",
+                "http://localhost:5173",
                 "http://127.0.0.1:5500",
                 "http://localhost:5500",
                 "https://diegopenaG.github.io"

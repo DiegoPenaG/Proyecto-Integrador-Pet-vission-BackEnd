@@ -12,4 +12,6 @@ public interface TurnoDetalleRepository extends JpaRepository<TurnoDetalle, Long
     List<TurnoDetalle> findByTurno_Id(Long idTurno);
 
     List<TurnoDetalle> findByTurno_IdAndDisponibleTrue(Long idTurno);
+
+    List<TurnoDetalle> findByTurno_Veterinario_IdUsuarioAndDisponibleTrue(Long idVeterinario);
 }

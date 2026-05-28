@@ -58,6 +58,21 @@ public class TurnoController {
     }
 
     /*
+     * DISPONIBILIDAD POR VETERINARIO — TODOS
+     * Retorna los slots disponibles de un veterinario con fecha incluida
+     */
+    @GetMapping("/veterinario/{idVeterinario}/disponibilidad")
+    public ResponseEntity<ApiResponse<List<TurnoDetalleResponseDto>>> obtenerDisponibilidad(
+            @PathVariable Long idVeterinario
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        turnoService.obtenerDisponibilidadVeterinario(idVeterinario)
+                )
+        );
+    }
+
+    /*
      * CREAR TURNO CON DETALLES — SOLO ADMIN
      */
     @PostMapping

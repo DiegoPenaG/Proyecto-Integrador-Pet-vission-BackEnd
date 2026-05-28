@@ -18,6 +18,11 @@ public class ReservaMapper {
                 .idReserva(reserva.getIdReserva())
                 .idUsuario(reserva.getUsuario().getIdUsuario())
                 .idVeterinario(reserva.getVeterinario().getIdUsuario())
+                .idTurnoDetalle(
+                        reserva.getTurnoDetalle() != null
+                                ? reserva.getTurnoDetalle().getId()
+                                : null
+                )
                 .fecha(reserva.getFecha())
                 .hora(reserva.getHora())
                 .motivo(reserva.getMotivo())

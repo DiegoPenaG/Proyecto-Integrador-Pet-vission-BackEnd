@@ -315,7 +315,7 @@ src/main/java/com/petvission/
 │   └── service/
 │       └── VacunacionService.java
 │
-├── turno/                            ← ex horario
+├── turno/                            ← ex turno
 │   ├── controller/
 │   │   └── TurnoController.java
 │   ├── dto/
@@ -402,7 +402,7 @@ src/main/java/com/petvission/
 |---|---|---|
 | `cita` → `Cita` | `reserva` → `ReservaServicio` | Renombrado |
 | `atencion` → `HistorialClinico` | `consulta` → `ConsultaMedica` | Renombrado + ajuste |
-| `horario` → (model) | `turno` → `Turno` | Renombrado |
+| `turno` → (model) | `turno` → `Turno` | Renombrado |
 | `/api/citas` | `/api/reservas` | Endpoint actualizado |
 | `/api/historial` | `/api/consultas` | Endpoint actualizado |
 | Sin `idMascota` en reserva | `idMascota` requerido en reserva | Campo agregado |

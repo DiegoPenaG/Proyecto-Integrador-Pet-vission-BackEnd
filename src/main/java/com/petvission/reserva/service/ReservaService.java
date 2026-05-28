@@ -2,7 +2,8 @@ package com.petvission.reserva.service;
 
 import lombok.RequiredArgsConstructor;
 
-import com.petvission.horario.repository.HorarioRepository;
+import com.petvission.turno.model.TurnoDetalle;
+import com.petvission.turno.repository.TurnoDetalleRepository;
 
 import com.petvission.mascota.model.Mascota;
 import com.petvission.mascota.repository.MascotaRepository;
@@ -32,6 +33,7 @@ import com.petvission.usuario.repository.UsuarioRepository;
 import com.petvission.usuario.repository.UsuarioVeterinarioRepository;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -48,11 +50,12 @@ public class ReservaService {
     private final MascotaRepository mascotaRepository;
     private final ServicioRepository servicioRepository;
     private final ReservaMapper reservaMapper;
-    private final HorarioRepository horarioRepository;
+    private final TurnoDetalleRepository turnoDetalleRepository;
 
     /*
      * AGENDAR RESERVA CON DTO
      */
+    @Transactional
     public ReservaResponseDto agendarReservaDto(ReservaRequestDto dto) {
 
         Usuario usuario = usuarioRepository.findById(dto.getIdUsuario())
@@ -67,12 +70,19 @@ public class ReservaService {
         Servicio servicio = servicioRepository.findById(dto.getIdServicio())
                 .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado"));
 
+        TurnoDetalle turnoDetalle = turnoDetalleRepository.findById(dto.getIdTurnoDetalle())
+                .orElseThrow(() -> new ResourceNotFoundException("Turno detalle no encontrado"));
+
+        if (!turnoDetalle.getDisponible()) {
+            throw new RuntimeException("El turno detalle seleccionado ya no está disponible");
+        }
+
         boolean ocupado = reservaRepository.existsByVeterinarioAndFechaAndHora(
                 veterinario, dto.getFecha(), dto.getHora()
         );
 
         if (ocupado) {
-            throw new RuntimeException("El veterinario ya tiene una reserva en ese horario");
+            throw new RuntimeException("El veterinario ya tiene una reserva en ese turno");
         }
 
         Reserva reserva = Reserva.builder()
@@ -80,6 +90,7 @@ public class ReservaService {
                 .veterinario(veterinario)
                 .mascota(mascota)
                 .servicio(servicio)
+                .turnoDetalle(turnoDetalle)
                 .fecha(dto.getFecha())
                 .hora(dto.getHora())
                 .motivo(dto.getMotivo())
@@ -87,15 +98,8 @@ public class ReservaService {
                 .estado(EstadoReserva.PENDIENTE)
                 .build();
 
-        horarioRepository
-                .findByVeterinario_IdUsuarioAndDisponibleTrue(dto.getIdVeterinario())
-                .stream()
-                .filter(h -> h.getFecha().equals(dto.getFecha()) && h.getHora().equals(dto.getHora()))
-                .findFirst()
-                .ifPresent(h -> {
-                    h.setDisponible(false);
-                    horarioRepository.save(h);
-                });
+        turnoDetalle.setDisponible(false);
+        turnoDetalleRepository.save(turnoDetalle);
 
         return reservaMapper.toDto(reservaRepository.save(reserva));
     }
@@ -103,12 +107,18 @@ public class ReservaService {
     /*
      * CANCELAR RESERVA
      */
+    @Transactional
     public ReservaUsuarioDto cancelarReserva(Long idReserva) {
 
         Reserva reserva = reservaRepository.findById(idReserva)
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
 
         reserva.setEstado(EstadoReserva.CANCELADA);
+
+        if (reserva.getTurnoDetalle() != null) {
+            reserva.getTurnoDetalle().setDisponible(true);
+            turnoDetalleRepository.save(reserva.getTurnoDetalle());
+        }
 
         return reservaMapper.toUsuarioDto(reservaRepository.save(reserva));
     }

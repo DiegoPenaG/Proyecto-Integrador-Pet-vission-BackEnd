@@ -24,6 +24,8 @@ public class ReservaResponseDto {
 
     private Long idVeterinario;
 
+    private Long idTurnoDetalle;
+
     private LocalDate fecha;
 
     private LocalTime hora;

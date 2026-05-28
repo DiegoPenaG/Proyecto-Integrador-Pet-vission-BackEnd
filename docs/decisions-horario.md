@@ -1,4 +1,4 @@
-# decisions-horario.md — Módulo Horario
+# decisions-turno.md — Módulo Horario
 
 Registro técnico de decisiones y correcciones aplicadas al módulo de horarios de PetVission.
 
@@ -17,8 +17,8 @@ public List<Horario> listarHorarios() {
 }
 
 @PostMapping
-public Horario crearHorario(@RequestBody Horario horario) {
-    return horarioService.guardarHorario(horario);
+public Horario crearHorario(@RequestBody Horario turno) {
+    return horarioService.guardarHorario(turno);
 }
 ```
 
@@ -107,7 +107,7 @@ public class HorarioResponseDto {
 
 ### Efecto en el frontend
 
-El frontend sabe exactamente qué campos enviar al crear un horario y qué campos esperar en la respuesta.
+El frontend sabe exactamente qué campos enviar al crear un turno y qué campos esperar en la respuesta.
 
 ---
 
@@ -122,14 +122,14 @@ public List<Horario> obtenerHorarios() {
     return horarioRepository.findAll();
 }
 
-public Horario guardarHorario(Horario horario) {
-    return horarioRepository.save(horario);
+public Horario guardarHorario(Horario turno) {
+    return horarioRepository.save(turno);
 }
 ```
 
 - Recibía y devolvía `Horario` (entidad JPA)
 - No había conversión a DTO
-- No validaba que el veterinario existiera al crear un horario
+- No validaba que el veterinario existiera al crear un turno
 
 ### Solución
 
@@ -140,14 +140,14 @@ public HorarioResponseDto guardarHorario(HorarioRequestDto dto) {
     UsuarioVeterinario veterinario = veterinarioRepository.findById(dto.getIdVeterinario())
             .orElseThrow(() -> new ResourceNotFoundException("Veterinario no encontrado"));
 
-    Horario horario = Horario.builder()
+    Horario turno = Horario.builder()
             .fecha(dto.getFecha())
             .hora(dto.getHora())
             .veterinario(veterinario)
             .disponible(true)
             .build();
 
-    return horarioMapper.toDto(horarioRepository.save(horario));
+    return horarioMapper.toDto(horarioRepository.save(turno));
 }
 ```
 
@@ -174,7 +174,7 @@ GET /api/horarios/veterinario/{idVeterinario}
 // Solo los horarios disponibles de un veterinario
 GET /api/horarios/veterinario/{idVeterinario}/disponibles
 
-// Desactivar un horario cuando se agenda una cita
+// Desactivar un turno cuando se agenda una cita
 PATCH /api/horarios/{id}/desactivar
 ```
 
@@ -195,7 +195,7 @@ El módulo de agendamiento puede consultar `/api/horarios/veterinario/{id}/dispo
 
 ### Problema
 
-Al agendar una cita en `CitaService.agendarCitaDto()`, el horario correspondiente no se marcaba como no disponible. Esto permitía que dos clientes agendaran la misma hora con el mismo veterinario.
+Al agendar una cita en `CitaService.agendarCitaDto()`, el turno correspondiente no se marcaba como no disponible. Esto permitía que dos clientes agendaran la misma hora con el mismo veterinario.
 
 Además, `generarHorariosDisponibles()` era un método hardcodeado que siempre devolvía los mismos tres horarios fijos (9:00, 10:00, 11:00) sin consultar la base de datos.
 
@@ -204,7 +204,7 @@ Además, `generarHorariosDisponibles()` era un método hardcodeado que siempre d
 Se inyectó `HorarioRepository` en `CitaService` y se conectó el agendamiento con los horarios:
 
 ```java
-// Al agendar una cita, marcar el horario como no disponible
+// Al agendar una cita, marcar el turno como no disponible
 horarioRepository
         .findByVeterinario_IdUsuarioAndDisponibleTrue(dto.getIdVeterinario())
         .stream()
@@ -218,7 +218,7 @@ horarioRepository
 
 ### Efecto en el frontend
 
-Una vez que se agenda una cita, el horario desaparece de la lista de disponibles. El cliente no puede agendar dos citas en el mismo slot.
+Una vez que se agenda una cita, el turno desaparece de la lista de disponibles. El cliente no puede agendar dos citas en el mismo slot.
 
 ---
 
@@ -227,7 +227,7 @@ Una vez que se agenda una cita, el horario desaparece de la lista de disponibles
 - **Separar siempre Request y Response** — un DTO que mezcla campos de entrada y salida genera ambigüedad
 - **El service nunca debe recibir ni devolver entidades JPA** — siempre usar DTOs como entrada y salida
 - **Los endpoints deben diseñarse pensando en el frontend** — si el frontend necesita horarios por veterinario, debe existir ese endpoint
-- **La lógica de negocio debe ser coherente** — agendar una cita debe afectar la disponibilidad del horario automáticamente
+- **La lógica de negocio debe ser coherente** — agendar una cita debe afectar la disponibilidad del turno automáticamente
 - **No hardcodear datos** — `generarHorariosDisponibles()` con horarios fijos no refleja la realidad del sistema
 
 ---

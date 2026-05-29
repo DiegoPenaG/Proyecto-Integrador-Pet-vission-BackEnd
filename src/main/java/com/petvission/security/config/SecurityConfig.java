@@ -65,12 +65,17 @@ public class SecurityConfig {
                 "http://127.0.0.1:5173",
                 "http://localhost:5173",
                 "https://diegopenaG.github.io",
-                "https://petvission-front.vercel.app" ,
-                "https://petvission-front-fhzxk2jtt-eam-pv.vercel.app/"
+                "https://petvission-front.vercel.app"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "Accept",
+                "Origin",
+                "X-Requested-With"
+        ));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

@@ -65,6 +65,7 @@ public class SecurityConfig {
                 "http://127.0.0.1:5173",
                 "http://localhost:5173",
                 "https://diegopenaG.github.io",
+                "https://petvission-front.vercel.app" ,
                 "https://petvission-front-fhzxk2jtt-eam-pv.vercel.app/"
         ));
 

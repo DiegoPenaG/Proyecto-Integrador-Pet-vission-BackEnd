@@ -93,13 +93,14 @@ public class ReservaController {
      * RESERVAS USUARIO
      */
     @GetMapping("/usuario/{idUsuario}")
-    public ResponseEntity<?> obtenerReservasUsuario(
+    public ResponseEntity<ApiResponse<List<ReservaUsuarioDto>>>
+    obtenerReservasUsuario(
             @PathVariable Long idUsuario
     ) {
 
         return ResponseEntity.ok(
-                reservaService.obtenerReservasPorUsuario(
-                        idUsuario
+                ApiResponse.success(
+                        reservaService.obtenerReservasPorUsuario(idUsuario)
                 )
         );
     }
@@ -177,14 +178,15 @@ public class ReservaController {
      * AGENDAR
      */
     @PostMapping
-    public ResponseEntity<ReservaResponseDto>
+    public ResponseEntity<ApiResponse<ReservaResponseDto>>
     agendarReserva(
             @Valid @RequestBody ReservaRequestDto dto
     ) {
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.success(
                         reservaService.agendarReservaDto(dto)
-                );
+                )
+        );
     }
 }

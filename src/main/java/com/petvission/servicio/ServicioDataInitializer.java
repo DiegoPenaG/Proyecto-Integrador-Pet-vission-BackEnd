@@ -22,7 +22,11 @@ public class ServicioDataInitializer {
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void init() {
-        if (servicioRepository.count() > 0) return;
+        long total = servicioRepository.count();
+        if (total > 0) {
+            log.info("ServicioDataInitializer: tabla ya tiene {} registros — saltando seed.", total);
+            return;
+        }
 
         log.info("Sembrando servicios...");
 

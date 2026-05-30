@@ -11,7 +11,7 @@ public class ServicioMapper {
     public Servicio toEntity(ServicioRequestDto dto) {
         return Servicio.builder()
                 .nombre(dto.getNombre())
-                .categoria(dto.getCategoria())
+                .tipoServicio(dto.getTipoServicio())
                 .descripcion(dto.getDescripcion())
                 .duracionMinutos(dto.getDuracionMinutos())
                 .precio(dto.getPrecio())
@@ -23,7 +23,7 @@ public class ServicioMapper {
         return ServicioResponseDto.builder()
                 .idServicio(servicio.getIdServicio())
                 .nombre(servicio.getNombre())
-                .categoria(servicio.getCategoria())
+                .tipoServicio(servicio.getTipoServicio())
                 .descripcion(servicio.getDescripcion())
                 .duracionMinutos(servicio.getDuracionMinutos())
                 .precio(servicio.getPrecio())

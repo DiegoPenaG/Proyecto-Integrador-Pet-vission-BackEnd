@@ -1,6 +1,6 @@
 package com.petvission.servicio.dto;
 
-import com.petvission.servicio.model.CategoriaServicio;
+import com.petvission.servicio.model.TipoServicio;
 import lombok.*;
 
 @Getter
@@ -10,24 +10,11 @@ import lombok.*;
 @Builder
 public class ServicioResponseDto {
 
-    /* Identificador único del servicio */
     private Integer idServicio;
-
-    /* Nombre del servicio */
     private String nombre;
-
-    /* Categoría del servicio */
-    private CategoriaServicio categoria;
-
-    /* Descripción del servicio */
+    private TipoServicio tipoServicio;
     private String descripcion;
-
-    /* Duración estimada en minutos */
     private Integer duracionMinutos;
-
-    /* Precio del servicio */
     private Double precio;
-
-    /* Estado de disponibilidad del servicio */
     private Boolean activo;
 }

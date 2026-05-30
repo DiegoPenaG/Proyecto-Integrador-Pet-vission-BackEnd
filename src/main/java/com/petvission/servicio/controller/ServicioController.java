@@ -2,6 +2,7 @@ package com.petvission.servicio.controller;
 
 import com.petvission.servicio.dto.ServicioRequestDto;
 import com.petvission.servicio.dto.ServicioResponseDto;
+import com.petvission.servicio.model.TipoServicio;
 import com.petvission.servicio.service.ServicioService;
 import com.petvission.shared.response.ApiResponse;
 
@@ -38,31 +39,20 @@ public class ServicioController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<ServicioResponseDto>>> obtenerTodos() {
-        return ResponseEntity.ok(
-                ApiResponse.success(servicioService.obtenerTodos())
-        );
+        return ResponseEntity.ok(ApiResponse.success(servicioService.obtenerTodos()));
     }
 
     /*
      * OBTENER SERVICIOS ACTIVOS
+     * GET /api/servicios/activos
+     * GET /api/servicios/activos?tipo=VACUNACION
+     * GET /api/servicios/activos?tipo=LABORATORIO
      */
     @GetMapping("/activos")
-    public ResponseEntity<ApiResponse<List<ServicioResponseDto>>> obtenerActivos() {
-        return ResponseEntity.ok(
-                ApiResponse.success(servicioService.obtenerActivos())
-        );
-    }
-
-    /*
-     * OBTENER SERVICIOS POR CATEGORÍA
-     */
-    @GetMapping("/categoria/{categoria}")
-    public ResponseEntity<ApiResponse<List<ServicioResponseDto>>> obtenerPorCategoria(
-            @PathVariable String categoria
+    public ResponseEntity<ApiResponse<List<ServicioResponseDto>>> obtenerActivos(
+            @RequestParam(required = false) TipoServicio tipo
     ) {
-        return ResponseEntity.ok(
-                ApiResponse.success(servicioService.obtenerPorCategoria(categoria))
-        );
+        return ResponseEntity.ok(ApiResponse.success(servicioService.obtenerActivos(tipo)));
     }
 
     /*
@@ -72,9 +62,7 @@ public class ServicioController {
     public ResponseEntity<ApiResponse<ServicioResponseDto>> obtenerPorId(
             @PathVariable Integer id
     ) {
-        return ResponseEntity.ok(
-                ApiResponse.success(servicioService.obtenerPorId(id))
-        );
+        return ResponseEntity.ok(ApiResponse.success(servicioService.obtenerPorId(id)));
     }
 
     /*
@@ -85,9 +73,7 @@ public class ServicioController {
             @PathVariable Integer id,
             @Valid @RequestBody ServicioRequestDto dto
     ) {
-        return ResponseEntity.ok(
-                ApiResponse.success(servicioService.actualizarServicio(id, dto))
-        );
+        return ResponseEntity.ok(ApiResponse.success(servicioService.actualizarServicio(id, dto)));
     }
 
     /*
@@ -97,8 +83,6 @@ public class ServicioController {
     public ResponseEntity<ApiResponse<ServicioResponseDto>> desactivarServicio(
             @PathVariable Integer id
     ) {
-        return ResponseEntity.ok(
-                ApiResponse.success(servicioService.desactivarServicio(id))
-        );
+        return ResponseEntity.ok(ApiResponse.success(servicioService.desactivarServicio(id)));
     }
 }

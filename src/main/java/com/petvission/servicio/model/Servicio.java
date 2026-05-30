@@ -1,7 +1,7 @@
 package com.petvission.servicio.model;
 
 import jakarta.persistence.*;
-        import lombok.*;
+import lombok.*;
 
 @Entity
 @Table(name = "servicio")
@@ -17,40 +17,25 @@ public class Servicio {
     @Column(name = "id_servicio")
     private Integer idServicio;
 
-    /*
-     * NOMBRE DEL SERVICIO
-     */
     @Column(nullable = false, length = 100)
     private String nombre;
 
-    /*
-     * CATEGORÍA DEL SERVICIO (clínico / no clínico)
-     */
+    /* Agrupa el servicio para el wizard: VACUNACION o LABORATORIO.
+       Null para servicios que no aplican (p.ej. futuros servicios genéricos). */
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
-    private CategoriaServicio categoria;
+    @Column(name = "tipo_servicio", length = 20)
+    private TipoServicio tipoServicio;
 
-    /*
-     * DESCRIPCIÓN DETALLADA DEL SERVICIO
-     */
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    /*
-     * DURACIÓN ESTIMADA EN MINUTOS
-     */
     @Column(name = "duracion_minutos", nullable = false)
     private Integer duracionMinutos;
 
-    /*
-     * PRECIO DEL SERVICIO
-     */
-    @Column(nullable = false)
+    /* Nullable — se muestra como "Consultar precio" en el frontend. */
+    @Column
     private Double precio;
 
-    /*
-     * INDICA SI EL SERVICIO ESTÁ DISPONIBLE
-     */
     @Column(nullable = false)
     private Boolean activo;
 }

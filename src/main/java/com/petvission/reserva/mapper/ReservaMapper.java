@@ -23,6 +23,7 @@ public class ReservaMapper {
                                 ? reserva.getTurnoDetalle().getId()
                                 : null
                 )
+                .categoriaReserva(reserva.getCategoriaReserva())
                 .fecha(reserva.getFecha())
                 .hora(reserva.getHora())
                 .motivo(reserva.getMotivo())

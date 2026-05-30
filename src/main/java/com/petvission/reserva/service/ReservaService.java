@@ -67,8 +67,10 @@ public class ReservaService {
         Mascota mascota = mascotaRepository.findById(dto.getIdMascota())
                 .orElseThrow(() -> new ResourceNotFoundException("Mascota no encontrada"));
 
-        Servicio servicio = servicioRepository.findById(dto.getIdServicio())
-                .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado"));
+        Servicio servicio = (dto.getIdServicio() != null)
+                ? servicioRepository.findById(dto.getIdServicio())
+                        .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado"))
+                : null;
 
         TurnoDetalle turnoDetalle = turnoDetalleRepository.findById(dto.getIdTurnoDetalle())
                 .orElseThrow(() -> new ResourceNotFoundException("Turno detalle no encontrado"));
@@ -91,6 +93,7 @@ public class ReservaService {
                 .mascota(mascota)
                 .servicio(servicio)
                 .turnoDetalle(turnoDetalle)
+                .categoriaReserva(dto.getCategoriaReserva())
                 .fecha(dto.getFecha())
                 .hora(dto.getHora())
                 .motivo(dto.getMotivo())

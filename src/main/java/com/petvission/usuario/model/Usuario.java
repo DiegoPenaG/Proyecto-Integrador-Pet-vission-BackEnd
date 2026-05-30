@@ -40,6 +40,9 @@ public class Usuario implements UserDetails {
 
     private String telefono;
 
+    @Column(name = "google_id")
+    private String googleId;
+
     @Column(nullable = false)
     @Builder.Default
     private Boolean estado = true;

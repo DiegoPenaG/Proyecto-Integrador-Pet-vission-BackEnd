@@ -9,6 +9,9 @@ import com.petvission.shared.exception.ResourceNotFoundException;
 import com.petvission.usuario.model.Usuario;
 import com.petvission.usuario.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,7 +42,7 @@ public class MascotaService {
     public List<MascotaResponseDto> listarPorUsuario(Long idUsuario) {
 
         return mascotaRepository
-                .findByUsuario_IdUsuario(idUsuario)
+                .findByUsuario_IdUsuarioAndEstadoTrue(idUsuario)
                 .stream()
                 .map(mascotaMapper::toDto)
                 .collect(Collectors.toList());
@@ -101,6 +104,15 @@ public class MascotaService {
                 );
 
         /*
+         * VERIFICACIÓN DE OWNERSHIP
+         */
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Usuario currentUser = (Usuario) auth.getPrincipal();
+        if (!mascota.getUsuario().getIdUsuario().equals(currentUser.getIdUsuario())) {
+            throw new AccessDeniedException("No tienes permiso para modificar esta mascota");
+        }
+
+        /*
          * ACTUALIZACIÓN DE DATOS
          */
         mascota.setNombre(dto.getNombre());
@@ -110,6 +122,7 @@ public class MascotaService {
         mascota.setFechaNacimiento(dto.getFechaNacimiento());
         mascota.setColor(dto.getColor());
         mascota.setPeso(dto.getPeso());
+        mascota.setAnimalGuia(dto.getAnimalGuia() != null ? dto.getAnimalGuia() : false);
 
         /*
          * GUARDADO DE CAMBIOS

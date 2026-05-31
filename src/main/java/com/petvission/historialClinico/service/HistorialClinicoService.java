@@ -128,7 +128,7 @@ public class HistorialClinicoService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Usuario currentUser = (Usuario) auth.getPrincipal();
         UsuarioVeterinario veterinario = veterinarioRepository
-                .findById(currentUser.getIdUsuario())
+                .findByUsuario_IdUsuario(currentUser.getIdUsuario())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Veterinario no encontrado"
                 ));
@@ -180,6 +180,7 @@ public class HistorialClinicoService {
     /*
      * OBTENER HISTORIAL DE MASCOTA (con tratamientos y vacunas)
      */
+    @Transactional(readOnly = true)
     public List<HistorialClinicoResponseDto> obtenerHistorialMascota(
             Long idMascota
     ) {

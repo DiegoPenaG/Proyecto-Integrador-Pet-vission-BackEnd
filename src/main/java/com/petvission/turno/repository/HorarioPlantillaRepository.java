@@ -10,4 +10,6 @@ import java.util.List;
 public interface HorarioPlantillaRepository extends JpaRepository<HorarioPlantilla, Long> {
 
     List<HorarioPlantilla> findByActivoTrue();
+
+    List<HorarioPlantilla> findByVeterinario_IdUsuario(Long idVeterinario);
 }

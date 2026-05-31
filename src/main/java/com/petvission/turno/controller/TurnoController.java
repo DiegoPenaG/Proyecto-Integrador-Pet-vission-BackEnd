@@ -3,6 +3,7 @@ package com.petvission.turno.controller;
 import com.petvission.shared.response.ApiResponse;
 import com.petvission.turno.dto.ActualizarDisponibilidadDto;
 import com.petvission.turno.dto.GeneracionResponseDto;
+import com.petvission.turno.dto.HorarioPlantillaResponseDto;
 import com.petvission.turno.dto.TurnoDetalleResponseDto;
 import com.petvission.turno.dto.TurnoRequestDto;
 import com.petvission.turno.dto.TurnoResponseDto;
@@ -46,6 +47,19 @@ public class TurnoController {
     ) {
         return ResponseEntity.ok(
                 ApiResponse.success(turnoService.listarPorVeterinario(idVeterinario))
+        );
+    }
+
+    /*
+     * PLANTILLAS DE HORARIO POR VETERINARIO — ADMIN, VETERINARIO
+     */
+    @GetMapping("/horario-plantilla/veterinario/{idVeterinario}")
+    @PreAuthorize("hasRole('ADMINISTRADOR') or hasRole('VETERINARIO')")
+    public ResponseEntity<ApiResponse<List<HorarioPlantillaResponseDto>>> listarPlantillasPorVeterinario(
+            @PathVariable Long idVeterinario
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.success(turnoService.listarPlantillasPorVeterinario(idVeterinario))
         );
     }
 

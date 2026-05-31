@@ -4,6 +4,7 @@ import com.petvission.shared.exception.ResourceNotFoundException;
 import com.petvission.turno.dto.ActualizarDisponibilidadDto;
 import com.petvission.turno.dto.GeneracionResponseDto;
 import com.petvission.turno.dto.TurnoDetalleResponseDto;
+import com.petvission.turno.dto.HorarioPlantillaResponseDto;
 import com.petvission.turno.dto.TurnoRequestDto;
 import com.petvission.turno.dto.TurnoResponseDto;
 import com.petvission.turno.mapper.TurnoMapper;
@@ -53,6 +54,29 @@ public class TurnoService {
         return turnoRepository.findByVeterinario_IdUsuario(idVeterinario)
                 .stream()
                 .map(turnoMapper::toDto)
+                .toList();
+    }
+
+    /*
+     * LISTAR PLANTILLAS DE HORARIO POR VETERINARIO
+     */
+    public List<HorarioPlantillaResponseDto> listarPlantillasPorVeterinario(Long idVeterinario) {
+        return plantillaRepository.findByVeterinario_IdUsuario(idVeterinario)
+                .stream()
+                .map(p -> HorarioPlantillaResponseDto.builder()
+                        .id(p.getId())
+                        .idVeterinario(p.getVeterinario().getIdUsuario())
+                        .nombreVeterinario(
+                                p.getVeterinario().getUsuario().getNombres()
+                                        + " " +
+                                        p.getVeterinario().getUsuario().getApellidos()
+                        )
+                        .diaSemana(p.getDiaSemana())
+                        .horaInicio(p.getHoraInicio())
+                        .horaFin(p.getHoraFin())
+                        .activo(p.getActivo())
+                        .build()
+                )
                 .toList();
     }
 

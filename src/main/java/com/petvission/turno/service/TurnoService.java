@@ -73,7 +73,8 @@ public class TurnoService {
      */
     public List<TurnoDetalleResponseDto> obtenerDisponibilidadVeterinario(Long idVeterinario) {
         return turnoDetalleRepository
-                .findByTurno_Veterinario_IdUsuarioAndDisponibleTrue(idVeterinario)
+                .findByTurno_Veterinario_IdUsuarioAndTurno_FechaGreaterThanEqualAndDisponibleTrue(
+                        idVeterinario, LocalDate.now())
                 .stream()
                 .map(td -> {
                     TurnoDetalleResponseDto dto = turnoMapper.toDetalleDto(td);

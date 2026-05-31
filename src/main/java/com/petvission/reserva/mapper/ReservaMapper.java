@@ -52,6 +52,12 @@ public class ReservaMapper {
                                 ? reserva.getMascota().getNombre()
                                 : null
                 )
+                .idMascota(
+                        reserva.getMascota() != null
+                                ? reserva.getMascota().getIdMascota()
+                                : null
+                )
+                .categoriaReserva(reserva.getCategoriaReserva())
                 .fecha(reserva.getFecha())
                 .hora(reserva.getHora())
                 .estado(reserva.getEstado())

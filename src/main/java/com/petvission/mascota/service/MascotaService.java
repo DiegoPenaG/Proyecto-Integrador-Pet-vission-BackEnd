@@ -49,6 +49,17 @@ public class MascotaService {
     }
 
     /*
+     * MÉTODO PARA OBTENER UNA MASCOTA POR ID
+     */
+    public MascotaResponseDto obtenerPorId(Long id) {
+        Mascota mascota = mascotaRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Mascota no encontrada")
+                );
+        return mascotaMapper.toDto(mascota);
+    }
+
+    /*
      * MÉTODO PARA REGISTRAR
      * UNA NUEVA MASCOTA
      */

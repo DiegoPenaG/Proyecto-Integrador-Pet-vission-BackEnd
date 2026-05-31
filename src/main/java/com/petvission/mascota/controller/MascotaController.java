@@ -20,6 +20,16 @@ public class MascotaController {
 
     private final MascotaService mascotaService;
 
+    // GET /api/mascotas/{id}
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('CLIENTE') or hasRole('VETERINARIO') or hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<MascotaResponseDto>> obtenerPorId(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(
+                ApiResponse.success(mascotaService.obtenerPorId(id))
+        );
+    }
+
     // GET /api/mascotas/usuario/{idUsuario}
     @GetMapping("/usuario/{idUsuario}")
     @PreAuthorize("hasRole('CLIENTE') or hasRole('VETERINARIO') or hasRole('ADMINISTRADOR')")

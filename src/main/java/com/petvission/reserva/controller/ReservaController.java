@@ -1,6 +1,7 @@
 package com.petvission.reserva.controller;
 
 import com.petvission.reserva.dto.AgendaVeterinarioDto;
+import com.petvission.reserva.dto.PacienteVetDto;
 import com.petvission.reserva.dto.ReservaRequestDto;
 import com.petvission.reserva.dto.ReservaResponseDto;
 import com.petvission.reserva.dto.ReservaUsuarioDto;
@@ -117,6 +118,42 @@ public class ReservaController {
         return ResponseEntity.ok(
                 ApiResponse.success(
                         reservaService.obtenerReservasVeterinario(
+                                idVeterinario
+                        )
+                )
+        );
+    }
+
+    /*
+     * RESERVAS HOY — VETERINARIO
+     */
+    @GetMapping("/veterinario/{idVeterinario}/hoy")
+    public ResponseEntity<ApiResponse<List<ReservaUsuarioDto>>>
+    obtenerReservasVeterinarioHoy(
+            @PathVariable Long idVeterinario
+    ) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        reservaService.obtenerReservasVeterinarioHoy(
+                                idVeterinario
+                        )
+                )
+        );
+    }
+
+    /*
+     * PACIENTES DEL VETERINARIO
+     */
+    @GetMapping("/veterinario/{idVeterinario}/pacientes")
+    public ResponseEntity<ApiResponse<List<PacienteVetDto>>>
+    obtenerPacientesVeterinario(
+            @PathVariable Long idVeterinario
+    ) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        reservaService.obtenerPacientesVeterinario(
                                 idVeterinario
                         )
                 )

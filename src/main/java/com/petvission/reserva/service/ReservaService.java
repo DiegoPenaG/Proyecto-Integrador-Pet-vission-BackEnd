@@ -130,6 +130,32 @@ public class ReservaService {
     }
 
     /*
+     * CONFIRMAR RESERVA
+     */
+    public ReservaUsuarioDto confirmarReserva(Long idReserva) {
+
+        Reserva reserva = reservaRepository.findById(idReserva)
+                .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
+
+        reserva.setEstado(EstadoReserva.CONFIRMADA);
+
+        return reservaMapper.toUsuarioDto(reservaRepository.save(reserva));
+    }
+
+    /*
+     * COMPLETAR RESERVA
+     */
+    public ReservaUsuarioDto completarReserva(Long idReserva) {
+
+        Reserva reserva = reservaRepository.findById(idReserva)
+                .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
+
+        reserva.setEstado(EstadoReserva.COMPLETADA);
+
+        return reservaMapper.toUsuarioDto(reservaRepository.save(reserva));
+    }
+
+    /*
      * REPROGRAMAR RESERVA
      */
     public ReservaUsuarioDto reprogramarReserva(Long idReserva, ReprogramarReservaDto dto) {

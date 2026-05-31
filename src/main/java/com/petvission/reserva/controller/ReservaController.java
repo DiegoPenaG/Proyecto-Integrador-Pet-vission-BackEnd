@@ -195,6 +195,38 @@ public class ReservaController {
     }
 
     /*
+     * CONFIRMAR
+     */
+    @PatchMapping("/{id}/confirmar")
+    public ResponseEntity<ApiResponse<ReservaUsuarioDto>>
+    confirmarReserva(
+            @PathVariable Long id
+    ) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        reservaService.confirmarReserva(id)
+                )
+        );
+    }
+
+    /*
+     * COMPLETAR
+     */
+    @PatchMapping("/{id}/completar")
+    public ResponseEntity<ApiResponse<ReservaUsuarioDto>>
+    completarReserva(
+            @PathVariable Long id
+    ) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        reservaService.completarReserva(id)
+                )
+        );
+    }
+
+    /*
      * REPROGRAMAR
      */
     @PatchMapping("/{id}/reprogramar")

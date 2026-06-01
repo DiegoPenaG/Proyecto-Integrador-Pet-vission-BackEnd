@@ -132,6 +132,7 @@ public class ReservaService {
     /*
      * CONFIRMAR RESERVA
      */
+    @Transactional
     public ReservaUsuarioDto confirmarReserva(Long idReserva) {
 
         Reserva reserva = reservaRepository.findById(idReserva)
@@ -145,6 +146,7 @@ public class ReservaService {
     /*
      * COMPLETAR RESERVA
      */
+    @Transactional
     public ReservaUsuarioDto completarReserva(Long idReserva) {
 
         Reserva reserva = reservaRepository.findById(idReserva)

@@ -21,6 +21,7 @@ import com.petvission.usuario.repository.UsuarioVeterinarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.petvission.shared.exception.ResourceNotFoundException;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -78,6 +79,55 @@ public class TurnoService {
                         .build()
                 )
                 .toList();
+    }
+
+    /*
+     * LISTAR TODAS LAS PLANTILLAS DE HORARIO (ADMINISTRADOR)
+     */
+    @Transactional(readOnly = true)
+    public List<HorarioPlantillaResponseDto> listarTodasLasPlantillas() {
+        return plantillaRepository.findAll()
+                .stream()
+                .map(this::toPlantillaDto)
+                .toList();
+    }
+
+    /*
+     * ACTIVAR PLANTILLA DE HORARIO
+     */
+    @Transactional
+    public HorarioPlantillaResponseDto activarPlantilla(Long id) {
+        HorarioPlantilla plantilla = plantillaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Plantilla no encontrada"));
+        plantilla.setActivo(true);
+        return toPlantillaDto(plantillaRepository.save(plantilla));
+    }
+
+    /*
+     * DESACTIVAR PLANTILLA DE HORARIO
+     */
+    @Transactional
+    public HorarioPlantillaResponseDto desactivarPlantilla(Long id) {
+        HorarioPlantilla plantilla = plantillaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Plantilla no encontrada"));
+        plantilla.setActivo(false);
+        return toPlantillaDto(plantillaRepository.save(plantilla));
+    }
+
+    private HorarioPlantillaResponseDto toPlantillaDto(HorarioPlantilla p) {
+        return HorarioPlantillaResponseDto.builder()
+                .id(p.getId())
+                .idVeterinario(p.getVeterinario().getIdUsuario())
+                .nombreVeterinario(
+                        p.getVeterinario().getUsuario().getNombres()
+                                + " " +
+                                p.getVeterinario().getUsuario().getApellidos()
+                )
+                .diaSemana(p.getDiaSemana())
+                .horaInicio(p.getHoraInicio())
+                .horaFin(p.getHoraFin())
+                .activo(p.getActivo())
+                .build();
     }
 
     /*

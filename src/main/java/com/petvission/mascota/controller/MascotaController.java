@@ -20,6 +20,15 @@ public class MascotaController {
 
     private final MascotaService mascotaService;
 
+    // GET /api/mascotas/todas
+    @GetMapping("/todas")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<List<MascotaResponseDto>>> listarTodas() {
+        return ResponseEntity.ok(
+                ApiResponse.success(mascotaService.listarTodas())
+        );
+    }
+
     // GET /api/mascotas/{id}
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('CLIENTE') or hasRole('VETERINARIO') or hasRole('ADMINISTRADOR')")

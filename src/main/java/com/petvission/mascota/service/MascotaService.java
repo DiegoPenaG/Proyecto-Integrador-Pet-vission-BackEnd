@@ -49,6 +49,16 @@ public class MascotaService {
     }
 
     /*
+     * MÉTODO PARA LISTAR TODAS LAS MASCOTAS (ADMINISTRADOR)
+     */
+    public List<MascotaResponseDto> listarTodas() {
+        return mascotaRepository.findAll()
+                .stream()
+                .map(mascotaMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    /*
      * MÉTODO PARA OBTENER UNA MASCOTA POR ID
      */
     public MascotaResponseDto obtenerPorId(Long id) {

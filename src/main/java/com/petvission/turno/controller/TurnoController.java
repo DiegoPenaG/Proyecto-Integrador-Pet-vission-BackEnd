@@ -64,6 +64,43 @@ public class TurnoController {
     }
 
     /*
+     * TODAS LAS PLANTILLAS DE HORARIO — SOLO ADMIN
+     */
+    @GetMapping("/horario-plantilla/todas")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<List<HorarioPlantillaResponseDto>>> listarTodasLasPlantillas() {
+        return ResponseEntity.ok(
+                ApiResponse.success(turnoService.listarTodasLasPlantillas())
+        );
+    }
+
+    /*
+     * ACTIVAR PLANTILLA DE HORARIO — SOLO ADMIN
+     */
+    @PatchMapping("/horario-plantilla/{id}/activar")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<HorarioPlantillaResponseDto>> activarPlantilla(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.success(turnoService.activarPlantilla(id))
+        );
+    }
+
+    /*
+     * DESACTIVAR PLANTILLA DE HORARIO — SOLO ADMIN
+     */
+    @PatchMapping("/horario-plantilla/{id}/desactivar")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<HorarioPlantillaResponseDto>> desactivarPlantilla(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.success(turnoService.desactivarPlantilla(id))
+        );
+    }
+
+    /*
      * DETALLES DISPONIBLES DE UN TURNO — TODOS
      */
     @GetMapping("/{id}/detalles/disponibles")

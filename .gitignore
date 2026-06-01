@@ -1,6 +1,6 @@
 HELP.md
 target/
-.mvn/wrapper/maven-wrapper.jar
+*.mvn
 !**/src/main/**/target/
 !**/src/test/**/target/
 
@@ -48,7 +48,6 @@ release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
-.mvn/wrapper/maven-wrapper.properties
 
 # ============================================
 # SPRING BOOT

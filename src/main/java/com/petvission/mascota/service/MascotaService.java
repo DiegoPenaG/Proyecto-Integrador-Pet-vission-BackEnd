@@ -1,0 +1,199 @@
+package com.petvission.mascota.service;
+
+import com.petvission.mascota.dto.MascotaRequestDto;
+import com.petvission.mascota.dto.MascotaResponseDto;
+import com.petvission.mascota.mapper.MascotaMapper;
+import com.petvission.mascota.model.Mascota;
+import com.petvission.mascota.repository.MascotaRepository;
+import com.petvission.shared.exception.ResourceNotFoundException;
+import com.petvission.usuario.model.Rol;
+import com.petvission.usuario.model.Usuario;
+import com.petvission.usuario.repository.UsuarioRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+/*
+ * SERVICIO DE MASCOTAS
+ * CONTIENE LA LÓGICA DE NEGOCIO
+ * RELACIONADA CON LA GESTIÓN
+ * Y ADMINISTRACIÓN DE MASCOTAS.
+ */
+
+@Service
+@RequiredArgsConstructor
+public class MascotaService {
+
+    /*
+     * INYECCIÓN DE REPOSITORIOS Y MAPPER
+     */
+    private final MascotaRepository mascotaRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final MascotaMapper mascotaMapper;
+
+    /*
+     * MÉTODO PARA LISTAR LAS MASCOTAS
+     * ASOCIADAS A UN USUARIO
+     */
+    public List<MascotaResponseDto> listarPorUsuario(Long idUsuario) {
+
+        return mascotaRepository
+                .findByUsuario_IdUsuarioAndEstadoTrue(idUsuario)
+                .stream()
+                .map(mascotaMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    /*
+     * MÉTODO PARA LISTAR TODAS LAS MASCOTAS (ADMINISTRADOR)
+     */
+    public List<MascotaResponseDto> listarTodas() {
+        return mascotaRepository.findAll()
+                .stream()
+                .map(mascotaMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    /*
+     * MÉTODO PARA OBTENER UNA MASCOTA POR ID
+     */
+    public MascotaResponseDto obtenerPorId(Long id) {
+        Mascota mascota = mascotaRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Mascota no encontrada")
+                );
+        return mascotaMapper.toDto(mascota);
+    }
+
+    /*
+     * MÉTODO PARA REGISTRAR
+     * UNA NUEVA MASCOTA
+     */
+    public MascotaResponseDto crear(
+            Long idUsuario,
+            MascotaRequestDto dto) {
+
+        /*
+         * VALIDACIÓN DE EXISTENCIA DEL USUARIO
+         */
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Usuario no encontrado: " + idUsuario
+                        )
+                );
+
+        /*
+         * CONVERSIÓN DE DTO A ENTIDAD
+         */
+        Mascota mascota = mascotaMapper.toEntity(dto);
+
+        /*
+         * ASIGNACIÓN DEL USUARIO A LA MASCOTA
+         */
+        mascota.setUsuario(usuario);
+
+        /*
+         * GUARDADO DE LA MASCOTA
+         */
+        return mascotaMapper.toDto(
+                mascotaRepository.save(mascota)
+        );
+    }
+
+    /*
+     * MÉTODO PARA ACTUALIZAR
+     * LA INFORMACIÓN DE UNA MASCOTA
+     */
+    public MascotaResponseDto actualizar(
+            Long id,
+            MascotaRequestDto dto) {
+
+        /*
+         * VALIDACIÓN DE EXISTENCIA DE LA MASCOTA
+         */
+
+        Mascota mascota = mascotaRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Mascota no encontrada"
+                        )
+                );
+
+        /*
+         * VERIFICACIÓN DE OWNERSHIP
+         */
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Usuario currentUser = (Usuario) auth.getPrincipal();
+        if (!mascota.getUsuario().getIdUsuario().equals(currentUser.getIdUsuario())) {
+            throw new AccessDeniedException("No tienes permiso para modificar esta mascota");
+        }
+
+        /*
+         * ACTUALIZACIÓN DE DATOS
+         */
+        mascota.setNombre(dto.getNombre());
+        mascota.setEspecie(dto.getEspecie());
+        mascota.setRaza(dto.getRaza());
+        mascota.setSexo(dto.getSexo());
+        mascota.setFechaNacimiento(dto.getFechaNacimiento());
+        mascota.setColor(dto.getColor());
+        mascota.setPeso(dto.getPeso());
+        mascota.setAnimalGuia(dto.getAnimalGuia() != null ? dto.getAnimalGuia() : false);
+
+        /*
+         * GUARDADO DE CAMBIOS
+         */
+        return mascotaMapper.toDto(
+                mascotaRepository.save(mascota)
+        );
+    }
+
+    /*
+     * MÉTODO PARA ELIMINAR UNA MASCOTA
+     * MEDIANTE ELIMINACIÓN LÓGICA
+     */
+    public void eliminar(Long id) {
+
+        /*
+         * VALIDACIÓN DE EXISTENCIA DE LA MASCOTA
+         */
+        Mascota mascota = mascotaRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Mascota no encontrada"
+                        )
+                );
+
+        /*
+         * CAMBIO DE ESTADO A INACTIVO
+         */
+        mascota.setEstado(false);
+
+        /*
+         * GUARDADO DE CAMBIOS
+         */
+        mascotaRepository.save(mascota);
+    }
+
+    public MascotaResponseDto reasignarDueno(Long idMascota, Long idNuevoUsuario) {
+        Mascota mascota = mascotaRepository.findById(idMascota)
+                .orElseThrow(() -> new ResourceNotFoundException("Mascota no encontrada"));
+
+        Usuario nuevoUsuario = usuarioRepository.findById(idNuevoUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Usuario no encontrado con id: " + idNuevoUsuario));
+
+        if (!nuevoUsuario.getRol().getNombreRol().equals(Rol.NombreRol.CLIENTE)) {
+            throw new IllegalArgumentException("El nuevo dueño debe tener rol CLIENTE");
+        }
+
+        mascota.setUsuario(nuevoUsuario);
+        return mascotaMapper.toDto(mascotaRepository.save(mascota));
+    }
+}

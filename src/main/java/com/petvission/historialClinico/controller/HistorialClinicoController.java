@@ -1,0 +1,126 @@
+package com.petvission.historialClinico.controller;
+
+import com.petvission.historialClinico.dto.HistorialClinicoRequestDto;
+import com.petvission.historialClinico.dto.HistorialClinicoResponseDto;
+import com.petvission.historialClinico.dto.NuevaConsultaRequestDto;
+import com.petvission.historialClinico.service.HistorialClinicoService;
+
+import com.petvission.shared.response.ApiResponse;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.ResponseEntity;
+
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/historial")
+@RequiredArgsConstructor
+public class HistorialClinicoController {
+
+    private final HistorialClinicoService historialService;
+
+    /*
+     * REGISTRAR DIAGNÓSTICO
+     */
+    @PatchMapping("/{idHistorial}/diagnostico")
+    public ResponseEntity<ApiResponse<HistorialClinicoResponseDto>>
+    registrarDiagnostico(
+            @PathVariable Long idHistorial,
+            @RequestBody String diagnostico
+    ) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        historialService.registrarDiagnostico(
+                                idHistorial,
+                                diagnostico
+                        )
+                )
+        );
+    }
+
+    /*
+     * REGISTRAR TRATAMIENTO
+     */
+    @PatchMapping("/{idHistorial}/tratamiento")
+    public ResponseEntity<ApiResponse<HistorialClinicoResponseDto>>
+    registrarTratamiento(
+            @PathVariable Long idHistorial,
+            @RequestParam String tratamiento,
+            @RequestParam String receta
+    ) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        historialService.registrarTratamiento(
+                                idHistorial,
+                                tratamiento,
+                                receta
+                        )
+                )
+        );
+    }
+
+    /*
+     * REGISTRAR OBSERVACIÓN
+     */
+    @PostMapping
+    public ResponseEntity<ApiResponse<HistorialClinicoResponseDto>>
+    registrarObservacion(
+            @RequestBody HistorialClinicoRequestDto dto
+    ) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        historialService.registrarObservacion(dto)
+                )
+        );
+    }
+
+    /*
+     * OBTENER HISTORIAL MASCOTA
+     */
+    @GetMapping("/mascota/{idMascota}")
+    public ResponseEntity<ApiResponse<List<HistorialClinicoResponseDto>>>
+    obtenerHistorialMascota(
+            @PathVariable Long idMascota
+    ) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        historialService.obtenerHistorialMascota(
+                                idMascota
+                        )
+                )
+        );
+    }
+
+    /*
+     * CREAR CONSULTA COMPLETA (vet extraído del JWT)
+     */
+    @PostMapping("/mascota/{idMascota}")
+    public ResponseEntity<ApiResponse<HistorialClinicoResponseDto>>
+    crearConsulta(
+            @PathVariable Long idMascota,
+            @Valid @RequestBody NuevaConsultaRequestDto dto
+    ) {
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.success(
+                        historialService.crearConsulta(idMascota, dto)
+                )
+        );
+    }
+}

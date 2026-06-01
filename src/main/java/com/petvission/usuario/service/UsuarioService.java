@@ -80,7 +80,6 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
 
         UsuarioVeterinario datosVet = UsuarioVeterinario.builder()
-                .idUsuario(usuario.getIdUsuario())
                 .usuario(usuario)
                 .especialidad(dto.getEspecialidad() != null ? dto.getEspecialidad() : "General")
                 .build();

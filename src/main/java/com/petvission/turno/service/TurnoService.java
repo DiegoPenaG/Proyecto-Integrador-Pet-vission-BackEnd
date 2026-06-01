@@ -169,6 +169,12 @@ public class TurnoService {
                         new ResourceNotFoundException("Veterinario no encontrado: " + dto.getIdVeterinario())
                 );
 
+        if (turnoRepository.existsByVeterinario_IdUsuarioAndFechaAndHoraInicio(
+                dto.getIdVeterinario(), dto.getFecha(), dto.getHoraInicio())) {
+            throw new IllegalArgumentException(
+                    "Ya existe un turno para este veterinario en esa fecha y hora de inicio");
+        }
+
         Turno turno = Turno.builder()
                 .veterinario(veterinario)
                 .fecha(dto.getFecha())
@@ -180,14 +186,17 @@ public class TurnoService {
 
         Turno turnoGuardado = turnoRepository.save(turno);
 
+        // Filtra detalles que ya existen para este vet/fecha para evitar slots duplicados
         List<TurnoDetalle> detalles = dto.getDetalles().stream()
-                .map(detalleDto -> TurnoDetalle.builder()
+                .filter(d -> !turnoDetalleRepository
+                        .existsByTurno_Veterinario_IdUsuarioAndTurno_FechaAndHoraInicio(
+                                dto.getIdVeterinario(), dto.getFecha(), d.getHoraInicio()))
+                .map(d -> TurnoDetalle.builder()
                         .turno(turnoGuardado)
-                        .horaInicio(detalleDto.getHoraInicio())
-                        .horaFin(detalleDto.getHoraFin())
+                        .horaInicio(d.getHoraInicio())
+                        .horaFin(d.getHoraFin())
                         .disponible(true)
-                        .build()
-                )
+                        .build())
                 .toList();
 
         turnoGuardado.setDetalles(turnoDetalleRepository.saveAll(detalles));

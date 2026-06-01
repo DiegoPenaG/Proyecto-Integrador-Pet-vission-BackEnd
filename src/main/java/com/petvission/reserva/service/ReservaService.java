@@ -2,6 +2,9 @@ package com.petvission.reserva.service;
 
 import lombok.RequiredArgsConstructor;
 
+import com.petvission.recordatorio.model.Recordatorio;
+import com.petvission.recordatorio.repository.RecordatorioRepository;
+
 import com.petvission.turno.model.TurnoDetalle;
 import com.petvission.turno.repository.TurnoDetalleRepository;
 
@@ -26,13 +29,16 @@ import com.petvission.reserva.model.Reserva;
 import com.petvission.reserva.repository.ReservaRepository;
 
 import com.petvission.shared.exception.ResourceNotFoundException;
+import com.petvission.shared.exception.UnauthorizedException;
 
+import com.petvission.usuario.model.Rol.NombreRol;
 import com.petvission.usuario.model.Usuario;
 import com.petvission.usuario.model.UsuarioVeterinario;
 
 import com.petvission.usuario.repository.UsuarioRepository;
 import com.petvission.usuario.repository.UsuarioVeterinarioRepository;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,10 +60,34 @@ public class ReservaService {
     private final ServicioRepository servicioRepository;
     private final ReservaMapper reservaMapper;
     private final TurnoDetalleRepository turnoDetalleRepository;
+    private final RecordatorioRepository recordatorioRepository;
 
-    /*
-     * AGENDAR RESERVA CON DTO
-     */
+    // ─── Helpers de autorización ─────────────────────────────────────
+
+    private NombreRol rolDe(Authentication auth) {
+        return ((Usuario) auth.getPrincipal()).getRol().getNombreRol();
+    }
+
+    private Long idDe(Authentication auth) {
+        return ((Usuario) auth.getPrincipal()).getIdUsuario();
+    }
+
+    private boolean esAdmin(Authentication auth) {
+        return rolDe(auth) == NombreRol.ADMINISTRADOR;
+    }
+
+    private boolean esClienteDueno(Reserva reserva, Authentication auth) {
+        return rolDe(auth) == NombreRol.CLIENTE
+                && reserva.getUsuario().getIdUsuario().equals(idDe(auth));
+    }
+
+    private boolean esVetAsignado(Reserva reserva, Authentication auth) {
+        return rolDe(auth) == NombreRol.VETERINARIO
+                && reserva.getVeterinario().getIdUsuario().equals(idDe(auth));
+    }
+
+    // ─── Agendar ─────────────────────────────────────────────────────
+
     @Transactional
     public ReservaResponseDto agendarReservaDto(ReservaRequestDto dto) {
 
@@ -79,15 +109,14 @@ public class ReservaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Turno detalle no encontrado"));
 
         if (!turnoDetalle.getDisponible()) {
-            throw new RuntimeException("El turno detalle seleccionado ya no está disponible");
+            throw new IllegalArgumentException("El turno detalle seleccionado ya no está disponible");
         }
 
         boolean ocupado = reservaRepository.existsByVeterinarioAndFechaAndHora(
                 veterinario, dto.getFecha(), dto.getHora()
         );
-
         if (ocupado) {
-            throw new RuntimeException("El veterinario ya tiene una reserva en ese turno");
+            throw new IllegalArgumentException("El veterinario ya tiene una reserva en ese turno");
         }
 
         Reserva reserva = Reserva.builder()
@@ -107,17 +136,37 @@ public class ReservaService {
         turnoDetalle.setDisponible(false);
         turnoDetalleRepository.save(turnoDetalle);
 
-        return reservaMapper.toDto(reservaRepository.save(reserva));
+        Reserva saved = reservaRepository.save(reserva);
+
+        recordatorioRepository.save(Recordatorio.builder().reserva(saved).build());
+
+        return reservaMapper.toDto(saved);
     }
 
-    /*
-     * CANCELAR RESERVA
-     */
+    // ─── Cancelar ────────────────────────────────────────────────────
+
     @Transactional
-    public ReservaUsuarioDto cancelarReserva(Long idReserva) {
+    public ReservaUsuarioDto cancelarReserva(Long idReserva, Authentication auth) {
 
         Reserva reserva = reservaRepository.findById(idReserva)
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
+
+        EstadoReserva estado = reserva.getEstado();
+        if (estado != EstadoReserva.PENDIENTE && estado != EstadoReserva.CONFIRMADA) {
+            throw new IllegalStateException(
+                    "No se puede cancelar una reserva en estado " + estado);
+        }
+
+        // ADMIN: puede cancelar cualquier estado
+        // VET asignado: puede cancelar PENDIENTE y CONFIRMADA (incluyendo no-show)
+        // CLIENTE dueño: solo puede cancelar PENDIENTE
+        boolean autorizado = esAdmin(auth)
+                || esVetAsignado(reserva, auth)
+                || (estado == EstadoReserva.PENDIENTE && esClienteDueno(reserva, auth));
+
+        if (!autorizado) {
+            throw new UnauthorizedException("No tiene permiso para cancelar esta reserva");
+        }
 
         reserva.setEstado(EstadoReserva.CANCELADA);
 
@@ -129,65 +178,90 @@ public class ReservaService {
         return reservaMapper.toUsuarioDto(reservaRepository.save(reserva));
     }
 
-    /*
-     * CONFIRMAR RESERVA
-     */
+    // ─── Confirmar (interno — invocado por RecordatorioService) ──────
+
     @Transactional
-    public ReservaUsuarioDto confirmarReserva(Long idReserva) {
+    public void confirmarReserva(Long idReserva) {
 
         Reserva reserva = reservaRepository.findById(idReserva)
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
 
-        reserva.setEstado(EstadoReserva.CONFIRMADA);
+        if (reserva.getEstado() != EstadoReserva.PENDIENTE) {
+            throw new IllegalStateException(
+                    "Solo se puede confirmar una reserva PENDIENTE (estado actual: "
+                            + reserva.getEstado() + ")");
+        }
 
-        return reservaMapper.toUsuarioDto(reservaRepository.save(reserva));
+        reserva.setEstado(EstadoReserva.CONFIRMADA);
+        reservaRepository.save(reserva);
     }
 
-    /*
-     * COMPLETAR RESERVA
-     */
+    // ─── Completar ───────────────────────────────────────────────────
+
     @Transactional
     public ReservaUsuarioDto completarReserva(Long idReserva) {
 
         Reserva reserva = reservaRepository.findById(idReserva)
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
 
-        reserva.setEstado(EstadoReserva.COMPLETADA);
+        if (reserva.getEstado() != EstadoReserva.CONFIRMADA) {
+            throw new IllegalStateException(
+                    "Solo se puede completar una reserva CONFIRMADA (estado actual: "
+                            + reserva.getEstado() + ")");
+        }
 
+        reserva.setEstado(EstadoReserva.COMPLETADA);
         return reservaMapper.toUsuarioDto(reservaRepository.save(reserva));
     }
 
-    /*
-     * REPROGRAMAR RESERVA
-     */
-    public ReservaUsuarioDto reprogramarReserva(Long idReserva, ReprogramarReservaDto dto) {
+    // ─── Reprogramar ─────────────────────────────────────────────────
+
+    @Transactional
+    public ReservaUsuarioDto reprogramarReserva(Long idReserva,
+                                                ReprogramarReservaDto dto,
+                                                Authentication auth) {
 
         Reserva reserva = reservaRepository.findById(idReserva)
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
 
-        reserva.setFecha(dto.getNuevaFecha());
-        reserva.setHora(dto.getNuevaHora());
-        reserva.setEstado(EstadoReserva.REPROGRAMADA);
+        EstadoReserva estado = reserva.getEstado();
+        if (estado != EstadoReserva.PENDIENTE && estado != EstadoReserva.CONFIRMADA) {
+            throw new IllegalStateException(
+                    "No se puede reprogramar una reserva en estado " + estado);
+        }
+
+        if (!esAdmin(auth) && !esVetAsignado(reserva, auth) && !esClienteDueno(reserva, auth)) {
+            throw new UnauthorizedException("No tiene permiso para reprogramar esta reserva");
+        }
+
+        if (dto.getFecha() == null || dto.getHora() == null) {
+            throw new IllegalArgumentException("Se requiere nueva fecha y hora para reprogramar");
+        }
+
+        // Liberar el slot anterior
+        if (reserva.getTurnoDetalle() != null) {
+            reserva.getTurnoDetalle().setDisponible(true);
+            turnoDetalleRepository.save(reserva.getTurnoDetalle());
+            reserva.setTurnoDetalle(null);
+        }
+
+        reserva.setFecha(dto.getFecha());
+        reserva.setHora(dto.getHora());
+        reserva.setEstado(EstadoReserva.PENDIENTE);
 
         return reservaMapper.toUsuarioDto(reservaRepository.save(reserva));
     }
 
-    /*
-     * TODAS LAS RESERVAS
-     */
-    public List<ReservaUsuarioDto> obtenerTodasLasReservas() {
+    // ─── Consultas ───────────────────────────────────────────────────
 
+    public List<ReservaUsuarioDto> obtenerTodasLasReservas() {
         return reservaRepository.findAll()
                 .stream()
                 .map(reservaMapper::toUsuarioDto)
                 .toList();
     }
 
-    /*
-     * RESERVAS POR CLIENTE
-     */
     public List<ReservaUsuarioDto> obtenerReservasPorUsuario(Long idUsuario) {
-
         return reservaRepository
                 .findByUsuario_IdUsuarioOrderByFechaAscHoraAsc(idUsuario)
                 .stream()
@@ -195,11 +269,7 @@ public class ReservaService {
                 .toList();
     }
 
-    /*
-     * RESERVAS DEL VETERINARIO
-     */
     public List<ReservaUsuarioDto> obtenerReservasVeterinario(Long idVeterinario) {
-
         return reservaRepository
                 .findByVeterinario_IdUsuarioOrderByFechaAscHoraAsc(idVeterinario)
                 .stream()
@@ -207,37 +277,25 @@ public class ReservaService {
                 .toList();
     }
 
-    /*
-     * RESERVAS POR FECHA
-     */
     public List<ReservaUsuarioDto> obtenerReservasPorFecha(LocalDate fecha) {
-
         return reservaRepository.findByFechaOrderByHoraAsc(fecha)
                 .stream()
                 .map(reservaMapper::toUsuarioDto)
                 .toList();
     }
 
-    /*
-     * AGENDA MENSUAL VETERINARIO
-     */
     public List<ReservaUsuarioDto> obtenerAgendaMensualVeterinario(Long idVeterinario) {
-
         UsuarioVeterinario veterinario = veterinarioRepository.findById(idVeterinario)
                 .orElseThrow(() -> new ResourceNotFoundException("Veterinario no encontrado"));
 
         return reservaRepository
                 .findByVeterinarioAndFechaGreaterThanEqualOrderByFechaAscHoraAsc(
-                        veterinario, LocalDate.now()
-                )
+                        veterinario, LocalDate.now())
                 .stream()
                 .map(reservaMapper::toUsuarioDto)
                 .toList();
     }
 
-    /*
-     * RESERVAS DEL VETERINARIO HOY
-     */
     public List<ReservaUsuarioDto> obtenerReservasVeterinarioHoy(Long idVeterinario) {
         return reservaRepository
                 .findByVeterinario_IdUsuarioAndFechaOrderByHoraAsc(idVeterinario, LocalDate.now())
@@ -246,9 +304,6 @@ public class ReservaService {
                 .toList();
     }
 
-    /*
-     * PACIENTES DEL VETERINARIO (mascotas únicas con última visita)
-     */
     public List<PacienteVetDto> obtenerPacientesVeterinario(Long idVeterinario) {
         List<Reserva> reservas = reservaRepository
                 .findByVeterinario_IdUsuarioOrderByFechaAscHoraAsc(idVeterinario);
@@ -266,69 +321,44 @@ public class ReservaService {
                         .nombreMascota(r.getMascota().getNombre())
                         .especie(r.getMascota().getEspecie())
                         .raza(r.getMascota().getRaza())
-                        .nombreDueno(
-                                r.getUsuario().getNombres()
-                                        + " " +
-                                        r.getUsuario().getApellidos()
-                        )
+                        .nombreDueno(r.getUsuario().getNombres() + " " + r.getUsuario().getApellidos())
                         .ultimaVisita(r.getFecha())
                         .activo(r.getMascota().getEstado())
                         .animalGuia(r.getMascota().getAnimalGuia())
-                        .build()
-                )
+                        .build())
                 .toList();
     }
 
-    /*
-     * AGENDA GENERAL
-     */
     public List<AgendaVeterinarioDto> obtenerAgendaVeterinarios() {
-
         List<UsuarioVeterinario> veterinarios = veterinarioRepository.findAll();
         List<AgendaVeterinarioDto> response = new ArrayList<>();
 
         for (UsuarioVeterinario veterinario : veterinarios) {
-            response.add(
-                    AgendaVeterinarioDto.builder()
-                            .idVeterinario(veterinario.getIdUsuario())
-                            .nombreVeterinario(
-                                    veterinario.getUsuario().getNombres()
-                                            + " " +
-                                            veterinario.getUsuario().getApellidos()
-                            )
-                            .especialidad(veterinario.getEspecialidad())
-                            .horariosDisponibles(generarHorariosDisponibles())
-                            .build()
-            );
+            response.add(AgendaVeterinarioDto.builder()
+                    .idVeterinario(veterinario.getIdUsuario())
+                    .nombreVeterinario(
+                            veterinario.getUsuario().getNombres()
+                                    + " " + veterinario.getUsuario().getApellidos())
+                    .especialidad(veterinario.getEspecialidad())
+                    .horariosDisponibles(generarHorariosDisponibles())
+                    .build());
         }
 
         return response;
     }
 
-    /*
-     * DISPONIBILIDAD BÁSICA
-     */
     public List<AgendaVeterinarioDto.HorarioDisponibleDto> obtenerDisponibilidadBasica() {
-
         return generarHorariosDisponibles();
     }
 
-    /*
-     * GENERAR HORARIOS
-     */
     private List<AgendaVeterinarioDto.HorarioDisponibleDto> generarHorariosDisponibles() {
-
         List<AgendaVeterinarioDto.HorarioDisponibleDto> horarios = new ArrayList<>();
-
         horarios.add(AgendaVeterinarioDto.HorarioDisponibleDto.builder()
                 .fecha(LocalDate.now()).hora(LocalTime.of(9, 0)).build());
-
         horarios.add(AgendaVeterinarioDto.HorarioDisponibleDto.builder()
                 .fecha(LocalDate.now()).hora(LocalTime.of(10, 0)).build());
-
         horarios.add(AgendaVeterinarioDto.HorarioDisponibleDto.builder()
                 .fecha(LocalDate.now()).hora(LocalTime.of(11, 0)).build());
-
         return horarios;
     }
 }

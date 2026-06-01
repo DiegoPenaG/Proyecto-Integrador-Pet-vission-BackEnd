@@ -74,4 +74,13 @@ public class UsuarioController {
         usuarioService.desactivar(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    // GET /api/usuarios/clientes
+    @GetMapping("/clientes")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<List<UsuarioResponseDto>>> listarClientes() {
+        return ResponseEntity.ok(
+                ApiResponse.success(usuarioService.listarClientes())
+        );
+    }
 }

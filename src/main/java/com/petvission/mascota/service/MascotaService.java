@@ -6,6 +6,7 @@ import com.petvission.mascota.mapper.MascotaMapper;
 import com.petvission.mascota.model.Mascota;
 import com.petvission.mascota.repository.MascotaRepository;
 import com.petvission.shared.exception.ResourceNotFoundException;
+import com.petvission.usuario.model.Rol;
 import com.petvission.usuario.model.Usuario;
 import com.petvission.usuario.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -178,5 +179,21 @@ public class MascotaService {
          * GUARDADO DE CAMBIOS
          */
         mascotaRepository.save(mascota);
+    }
+
+    public MascotaResponseDto reasignarDueno(Long idMascota, Long idNuevoUsuario) {
+        Mascota mascota = mascotaRepository.findById(idMascota)
+                .orElseThrow(() -> new ResourceNotFoundException("Mascota no encontrada"));
+
+        Usuario nuevoUsuario = usuarioRepository.findById(idNuevoUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Usuario no encontrado con id: " + idNuevoUsuario));
+
+        if (!nuevoUsuario.getRol().getNombreRol().equals(Rol.NombreRol.CLIENTE)) {
+            throw new IllegalArgumentException("El nuevo dueño debe tener rol CLIENTE");
+        }
+
+        mascota.setUsuario(nuevoUsuario);
+        return mascotaMapper.toDto(mascotaRepository.save(mascota));
     }
 }

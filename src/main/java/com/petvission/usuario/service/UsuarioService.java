@@ -1,14 +1,20 @@
 package com.petvission.usuario.service;
 
 import com.petvission.shared.exception.ResourceNotFoundException;
+import com.petvission.usuario.dto.CreateVeterinarioDto;
 import com.petvission.usuario.dto.UsuarioRequestDto;
 import com.petvission.usuario.dto.UsuarioResponseDto;
 import com.petvission.usuario.mapper.UsuarioMapper;
 import com.petvission.usuario.model.Rol;
 import com.petvission.usuario.model.Usuario;
+import com.petvission.usuario.model.UsuarioVeterinario;
+import com.petvission.usuario.repository.RolRepository;
 import com.petvission.usuario.repository.UsuarioRepository;
+import com.petvission.usuario.repository.UsuarioVeterinarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,8 +25,10 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final RolRepository rolRepository;
+    private final UsuarioVeterinarioRepository usuarioVeterinarioRepository;
 
-    // Listar usuarios activos
     public List<UsuarioResponseDto> listarActivos() {
         return usuarioRepository.findByEstadoTrue()
                 .stream()
@@ -28,13 +36,10 @@ public class UsuarioService {
                 .collect(Collectors.toList());
     }
 
-    // Obtener usuario por ID
     public UsuarioResponseDto obtenerPorId(Long id) {
-        Usuario usuario = buscarOFallar(id);
-        return usuarioMapper.toDto(usuario);
+        return usuarioMapper.toDto(buscarOFallar(id));
     }
 
-    // Listar veterinarios activos
     public List<UsuarioResponseDto> listarVeterinarios() {
         return usuarioRepository
                 .findByRol_NombreRol(Rol.NombreRol.VETERINARIO)
@@ -44,7 +49,47 @@ public class UsuarioService {
                 .collect(Collectors.toList());
     }
 
-    // Actualizar datos básicos
+    public List<UsuarioResponseDto> listarClientes() {
+        return usuarioRepository
+                .findByRol_NombreRol(Rol.NombreRol.CLIENTE)
+                .stream()
+                .filter(Usuario::getEstado)
+                .map(usuarioMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public UsuarioResponseDto crearVeterinario(CreateVeterinarioDto dto) {
+        if (usuarioRepository.existsByCorreo(dto.getCorreo())) {
+            throw new IllegalArgumentException("El correo ya está registrado");
+        }
+
+        Rol rol = rolRepository.findByNombreRol(Rol.NombreRol.VETERINARIO)
+                .orElseThrow(() -> new ResourceNotFoundException("Rol VETERINARIO no encontrado"));
+
+        Usuario usuario = Usuario.builder()
+                .nombres(dto.getNombres())
+                .apellidos(dto.getApellidos())
+                .correo(dto.getCorreo())
+                .contrasena(passwordEncoder.encode(dto.getContrasena()))
+                .telefono(dto.getTelefono())
+                .rol(rol)
+                .estado(true)
+                .build();
+
+        usuarioRepository.save(usuario);
+
+        UsuarioVeterinario datosVet = UsuarioVeterinario.builder()
+                .idUsuario(usuario.getIdUsuario())
+                .usuario(usuario)
+                .especialidad(dto.getEspecialidad() != null ? dto.getEspecialidad() : "General")
+                .build();
+
+        usuarioVeterinarioRepository.save(datosVet);
+
+        return usuarioMapper.toDto(usuario);
+    }
+
     public UsuarioResponseDto actualizar(Long id, UsuarioRequestDto dto) {
         Usuario usuario = buscarOFallar(id);
         usuario.setNombres(dto.getNombres());
@@ -53,14 +98,12 @@ public class UsuarioService {
         return usuarioMapper.toDto(usuarioRepository.save(usuario));
     }
 
-    // Soft delete
     public void desactivar(Long id) {
         Usuario usuario = buscarOFallar(id);
         usuario.setEstado(false);
         usuarioRepository.save(usuario);
     }
 
-    // Método privado reutilizable
     private Usuario buscarOFallar(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(

@@ -2,6 +2,7 @@ package com.petvission.mascota.controller;
 
 import com.petvission.mascota.dto.MascotaRequestDto;
 import com.petvission.mascota.dto.MascotaResponseDto;
+import com.petvission.mascota.dto.ReasignarMascotaDto;
 import com.petvission.mascota.service.MascotaService;
 import com.petvission.shared.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -78,5 +79,16 @@ public class MascotaController {
             @PathVariable Long id) {
         mascotaService.eliminar(id);
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    // PATCH /api/mascotas/{id}/reasignar
+    @PatchMapping("/{id}/reasignar")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<MascotaResponseDto>> reasignar(
+            @PathVariable Long id,
+            @Valid @RequestBody ReasignarMascotaDto dto) {
+        return ResponseEntity.ok(
+                ApiResponse.success(mascotaService.reasignarDueno(id, dto.getIdNuevoUsuario()))
+        );
     }
 }

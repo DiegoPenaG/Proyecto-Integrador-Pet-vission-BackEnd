@@ -64,4 +64,13 @@ public interface ReservaRepository
             UsuarioVeterinario veterinario,
             LocalDate fecha
     );
+
+    /*
+     * RESERVAS DEL VETERINARIO EN UNA FECHA
+     */
+    List<Reserva>
+    findByVeterinario_IdUsuarioAndFechaOrderByHoraAsc(
+            Long idVeterinario,
+            LocalDate fecha
+    );
 }

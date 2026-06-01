@@ -1,6 +1,7 @@
 package com.petvission.reserva.controller;
 
 import com.petvission.reserva.dto.AgendaVeterinarioDto;
+import com.petvission.reserva.dto.PacienteVetDto;
 import com.petvission.reserva.dto.ReservaRequestDto;
 import com.petvission.reserva.dto.ReservaResponseDto;
 import com.petvission.reserva.dto.ReservaUsuarioDto;
@@ -93,13 +94,14 @@ public class ReservaController {
      * RESERVAS USUARIO
      */
     @GetMapping("/usuario/{idUsuario}")
-    public ResponseEntity<?> obtenerReservasUsuario(
+    public ResponseEntity<ApiResponse<List<ReservaUsuarioDto>>>
+    obtenerReservasUsuario(
             @PathVariable Long idUsuario
     ) {
 
         return ResponseEntity.ok(
-                reservaService.obtenerReservasPorUsuario(
-                        idUsuario
+                ApiResponse.success(
+                        reservaService.obtenerReservasPorUsuario(idUsuario)
                 )
         );
     }
@@ -116,6 +118,42 @@ public class ReservaController {
         return ResponseEntity.ok(
                 ApiResponse.success(
                         reservaService.obtenerReservasVeterinario(
+                                idVeterinario
+                        )
+                )
+        );
+    }
+
+    /*
+     * RESERVAS HOY — VETERINARIO
+     */
+    @GetMapping("/veterinario/{idVeterinario}/hoy")
+    public ResponseEntity<ApiResponse<List<ReservaUsuarioDto>>>
+    obtenerReservasVeterinarioHoy(
+            @PathVariable Long idVeterinario
+    ) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        reservaService.obtenerReservasVeterinarioHoy(
+                                idVeterinario
+                        )
+                )
+        );
+    }
+
+    /*
+     * PACIENTES DEL VETERINARIO
+     */
+    @GetMapping("/veterinario/{idVeterinario}/pacientes")
+    public ResponseEntity<ApiResponse<List<PacienteVetDto>>>
+    obtenerPacientesVeterinario(
+            @PathVariable Long idVeterinario
+    ) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        reservaService.obtenerPacientesVeterinario(
                                 idVeterinario
                         )
                 )
@@ -157,6 +195,38 @@ public class ReservaController {
     }
 
     /*
+     * CONFIRMAR
+     */
+    @PatchMapping("/{id}/confirmar")
+    public ResponseEntity<ApiResponse<ReservaUsuarioDto>>
+    confirmarReserva(
+            @PathVariable Long id
+    ) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        reservaService.confirmarReserva(id)
+                )
+        );
+    }
+
+    /*
+     * COMPLETAR
+     */
+    @PatchMapping("/{id}/completar")
+    public ResponseEntity<ApiResponse<ReservaUsuarioDto>>
+    completarReserva(
+            @PathVariable Long id
+    ) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        reservaService.completarReserva(id)
+                )
+        );
+    }
+
+    /*
      * REPROGRAMAR
      */
     @PatchMapping("/{id}/reprogramar")
@@ -177,14 +247,15 @@ public class ReservaController {
      * AGENDAR
      */
     @PostMapping
-    public ResponseEntity<ReservaResponseDto>
+    public ResponseEntity<ApiResponse<ReservaResponseDto>>
     agendarReserva(
             @Valid @RequestBody ReservaRequestDto dto
     ) {
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.success(
                         reservaService.agendarReservaDto(dto)
-                );
+                )
+        );
     }
 }

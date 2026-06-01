@@ -9,6 +9,7 @@ import com.petvission.servicio.model.Servicio;
 import com.petvission.turno.model.TurnoDetalle;
 import com.petvission.usuario.model.Usuario;
 import com.petvission.usuario.model.UsuarioVeterinario;
+import com.petvission.reserva.model.CategoriaReserva;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -42,10 +43,10 @@ public class Reserva {
     private UsuarioVeterinario veterinario;
 
     /*
-     * SERVICIO
+     * SERVICIO (nullable — CONSULTA no requiere servicio específico)
      */
     @ManyToOne
-    @JoinColumn(name = "id_servicio", nullable = false)
+    @JoinColumn(name = "id_servicio", nullable = true)
     private Servicio servicio;
 
     /*
@@ -86,6 +87,13 @@ public class Reserva {
     @Column(name = "observaciones")
     private String observaciones;
 
+
+    /*
+     * CATEGORÍA DE LA RESERVA
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "categoria_reserva", length = 20)
+    private CategoriaReserva categoriaReserva;
 
     /*
      * ESTADO

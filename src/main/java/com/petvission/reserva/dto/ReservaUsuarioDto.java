@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.petvission.reserva.model.CategoriaReserva;
 import com.petvission.reserva.model.EstadoReserva;
 
 import java.time.LocalDate;
@@ -31,4 +32,8 @@ public class ReservaUsuarioDto {
     private String nombreMascota;
 
     private String motivo;
+
+    private Long idMascota;
+
+    private CategoriaReserva categoriaReserva;
 }

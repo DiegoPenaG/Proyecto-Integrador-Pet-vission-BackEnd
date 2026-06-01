@@ -36,6 +36,7 @@ public class MascotaResponseDto {
      * ESTADO LÓGICO DE LA MASCOTA
      */
     private Boolean estado;
+    private Boolean animalGuia;
 
     /*
      * INFORMACIÓN DEL USUARIO

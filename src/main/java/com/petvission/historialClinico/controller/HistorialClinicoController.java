@@ -2,6 +2,7 @@ package com.petvission.historialClinico.controller;
 
 import com.petvission.historialClinico.dto.HistorialClinicoRequestDto;
 import com.petvission.historialClinico.dto.HistorialClinicoResponseDto;
+import com.petvission.historialClinico.dto.NuevaConsultaRequestDto;
 import com.petvission.historialClinico.service.HistorialClinicoService;
 
 import com.petvission.shared.response.ApiResponse;
@@ -10,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
 
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -100,6 +103,23 @@ public class HistorialClinicoController {
                         historialService.obtenerHistorialMascota(
                                 idMascota
                         )
+                )
+        );
+    }
+
+    /*
+     * CREAR CONSULTA COMPLETA (vet extraído del JWT)
+     */
+    @PostMapping("/mascota/{idMascota}")
+    public ResponseEntity<ApiResponse<HistorialClinicoResponseDto>>
+    crearConsulta(
+            @PathVariable Long idMascota,
+            @Valid @RequestBody NuevaConsultaRequestDto dto
+    ) {
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.success(
+                        historialService.crearConsulta(idMascota, dto)
                 )
         );
     }

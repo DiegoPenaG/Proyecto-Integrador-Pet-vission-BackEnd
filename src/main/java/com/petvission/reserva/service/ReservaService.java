@@ -12,6 +12,7 @@ import com.petvission.servicio.model.Servicio;
 import com.petvission.servicio.repository.ServicioRepository;
 
 import com.petvission.reserva.dto.AgendaVeterinarioDto;
+import com.petvission.reserva.dto.PacienteVetDto;
 import com.petvission.reserva.dto.ReservaRequestDto;
 import com.petvission.reserva.dto.ReservaResponseDto;
 import com.petvission.reserva.dto.ReservaUsuarioDto;
@@ -38,7 +39,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -67,8 +70,10 @@ public class ReservaService {
         Mascota mascota = mascotaRepository.findById(dto.getIdMascota())
                 .orElseThrow(() -> new ResourceNotFoundException("Mascota no encontrada"));
 
-        Servicio servicio = servicioRepository.findById(dto.getIdServicio())
-                .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado"));
+        Servicio servicio = (dto.getIdServicio() != null)
+                ? servicioRepository.findById(dto.getIdServicio())
+                        .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado"))
+                : null;
 
         TurnoDetalle turnoDetalle = turnoDetalleRepository.findById(dto.getIdTurnoDetalle())
                 .orElseThrow(() -> new ResourceNotFoundException("Turno detalle no encontrado"));
@@ -91,6 +96,7 @@ public class ReservaService {
                 .mascota(mascota)
                 .servicio(servicio)
                 .turnoDetalle(turnoDetalle)
+                .categoriaReserva(dto.getCategoriaReserva())
                 .fecha(dto.getFecha())
                 .hora(dto.getHora())
                 .motivo(dto.getMotivo())
@@ -119,6 +125,34 @@ public class ReservaService {
             reserva.getTurnoDetalle().setDisponible(true);
             turnoDetalleRepository.save(reserva.getTurnoDetalle());
         }
+
+        return reservaMapper.toUsuarioDto(reservaRepository.save(reserva));
+    }
+
+    /*
+     * CONFIRMAR RESERVA
+     */
+    @Transactional
+    public ReservaUsuarioDto confirmarReserva(Long idReserva) {
+
+        Reserva reserva = reservaRepository.findById(idReserva)
+                .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
+
+        reserva.setEstado(EstadoReserva.CONFIRMADA);
+
+        return reservaMapper.toUsuarioDto(reservaRepository.save(reserva));
+    }
+
+    /*
+     * COMPLETAR RESERVA
+     */
+    @Transactional
+    public ReservaUsuarioDto completarReserva(Long idReserva) {
+
+        Reserva reserva = reservaRepository.findById(idReserva)
+                .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
+
+        reserva.setEstado(EstadoReserva.COMPLETADA);
 
         return reservaMapper.toUsuarioDto(reservaRepository.save(reserva));
     }
@@ -198,6 +232,50 @@ public class ReservaService {
                 )
                 .stream()
                 .map(reservaMapper::toUsuarioDto)
+                .toList();
+    }
+
+    /*
+     * RESERVAS DEL VETERINARIO HOY
+     */
+    public List<ReservaUsuarioDto> obtenerReservasVeterinarioHoy(Long idVeterinario) {
+        return reservaRepository
+                .findByVeterinario_IdUsuarioAndFechaOrderByHoraAsc(idVeterinario, LocalDate.now())
+                .stream()
+                .map(reservaMapper::toUsuarioDto)
+                .toList();
+    }
+
+    /*
+     * PACIENTES DEL VETERINARIO (mascotas únicas con última visita)
+     */
+    public List<PacienteVetDto> obtenerPacientesVeterinario(Long idVeterinario) {
+        List<Reserva> reservas = reservaRepository
+                .findByVeterinario_IdUsuarioOrderByFechaAscHoraAsc(idVeterinario);
+
+        Map<Long, Reserva> ultimas = new LinkedHashMap<>();
+        for (Reserva r : reservas) {
+            if (r.getMascota() != null) {
+                ultimas.put(r.getMascota().getIdMascota(), r);
+            }
+        }
+
+        return ultimas.values().stream()
+                .map(r -> PacienteVetDto.builder()
+                        .idMascota(r.getMascota().getIdMascota())
+                        .nombreMascota(r.getMascota().getNombre())
+                        .especie(r.getMascota().getEspecie())
+                        .raza(r.getMascota().getRaza())
+                        .nombreDueno(
+                                r.getUsuario().getNombres()
+                                        + " " +
+                                        r.getUsuario().getApellidos()
+                        )
+                        .ultimaVisita(r.getFecha())
+                        .activo(r.getMascota().getEstado())
+                        .animalGuia(r.getMascota().getAnimalGuia())
+                        .build()
+                )
                 .toList();
     }
 

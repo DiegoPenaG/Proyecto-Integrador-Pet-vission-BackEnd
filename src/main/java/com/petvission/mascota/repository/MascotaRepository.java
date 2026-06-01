@@ -25,6 +25,10 @@ public interface MascotaRepository
             Long idUsuario
     );
 
+    List<Mascota> findByUsuario_IdUsuarioAndEstadoTrue(
+            Long idUsuario
+    );
+
     /*
      * MÉTODO PARA BUSCAR MASCOTAS
      * SEGÚN SU ESPECIE

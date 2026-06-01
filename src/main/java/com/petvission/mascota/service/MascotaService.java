@@ -6,9 +6,13 @@ import com.petvission.mascota.mapper.MascotaMapper;
 import com.petvission.mascota.model.Mascota;
 import com.petvission.mascota.repository.MascotaRepository;
 import com.petvission.shared.exception.ResourceNotFoundException;
+import com.petvission.usuario.model.Rol;
 import com.petvission.usuario.model.Usuario;
 import com.petvission.usuario.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,10 +43,31 @@ public class MascotaService {
     public List<MascotaResponseDto> listarPorUsuario(Long idUsuario) {
 
         return mascotaRepository
-                .findByUsuario_IdUsuario(idUsuario)
+                .findByUsuario_IdUsuarioAndEstadoTrue(idUsuario)
                 .stream()
                 .map(mascotaMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    /*
+     * MÉTODO PARA LISTAR TODAS LAS MASCOTAS (ADMINISTRADOR)
+     */
+    public List<MascotaResponseDto> listarTodas() {
+        return mascotaRepository.findAll()
+                .stream()
+                .map(mascotaMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    /*
+     * MÉTODO PARA OBTENER UNA MASCOTA POR ID
+     */
+    public MascotaResponseDto obtenerPorId(Long id) {
+        Mascota mascota = mascotaRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Mascota no encontrada")
+                );
+        return mascotaMapper.toDto(mascota);
     }
 
     /*
@@ -101,6 +126,15 @@ public class MascotaService {
                 );
 
         /*
+         * VERIFICACIÓN DE OWNERSHIP
+         */
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Usuario currentUser = (Usuario) auth.getPrincipal();
+        if (!mascota.getUsuario().getIdUsuario().equals(currentUser.getIdUsuario())) {
+            throw new AccessDeniedException("No tienes permiso para modificar esta mascota");
+        }
+
+        /*
          * ACTUALIZACIÓN DE DATOS
          */
         mascota.setNombre(dto.getNombre());
@@ -110,6 +144,7 @@ public class MascotaService {
         mascota.setFechaNacimiento(dto.getFechaNacimiento());
         mascota.setColor(dto.getColor());
         mascota.setPeso(dto.getPeso());
+        mascota.setAnimalGuia(dto.getAnimalGuia() != null ? dto.getAnimalGuia() : false);
 
         /*
          * GUARDADO DE CAMBIOS
@@ -144,5 +179,21 @@ public class MascotaService {
          * GUARDADO DE CAMBIOS
          */
         mascotaRepository.save(mascota);
+    }
+
+    public MascotaResponseDto reasignarDueno(Long idMascota, Long idNuevoUsuario) {
+        Mascota mascota = mascotaRepository.findById(idMascota)
+                .orElseThrow(() -> new ResourceNotFoundException("Mascota no encontrada"));
+
+        Usuario nuevoUsuario = usuarioRepository.findById(idNuevoUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Usuario no encontrado con id: " + idNuevoUsuario));
+
+        if (!nuevoUsuario.getRol().getNombreRol().equals(Rol.NombreRol.CLIENTE)) {
+            throw new IllegalArgumentException("El nuevo dueño debe tener rol CLIENTE");
+        }
+
+        mascota.setUsuario(nuevoUsuario);
+        return mascotaMapper.toDto(mascotaRepository.save(mascota));
     }
 }

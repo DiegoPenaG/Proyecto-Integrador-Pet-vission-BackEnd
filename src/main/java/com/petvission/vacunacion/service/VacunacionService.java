@@ -14,6 +14,8 @@ import com.petvission.vacunacion.model.VacunaCatalogo;
 import com.petvission.vacunacion.model.Vacunacion;
 import com.petvission.vacunacion.repository.VacunaCatalogoRepository;
 import com.petvission.vacunacion.repository.VacunacionRepository;
+
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -63,5 +65,12 @@ public class VacunacionService {
          * MAPEO A RESPONSE DTO
          */
         return VacunacionMapper.toDto(vacunacionRepository.save(vacunacion));
+    }
+
+    /*
+     * CATÁLOGO DE VACUNAS
+     */
+    public List<VacunaCatalogo> obtenerCatalogo() {
+        return vacunaCatalogoRepository.findAll();
     }
 }

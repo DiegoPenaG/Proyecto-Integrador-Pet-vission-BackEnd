@@ -1,6 +1,6 @@
 package com.petvission.servicio.dto;
 
-import com.petvission.servicio.model.CategoriaServicio;
+import com.petvission.servicio.model.TipoServicio;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -12,27 +12,21 @@ import lombok.*;
 @Builder
 public class ServicioRequestDto {
 
-    /* Nombre del servicio */
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
-    /* Categoría del servicio */
-    @NotNull(message = "La categoría es obligatoria")
-    private CategoriaServicio categoria;
+    /* Nullable — servicios de consulta general no tienen tipo. */
+    private TipoServicio tipoServicio;
 
-    /* Descripción del servicio */
     @NotBlank(message = "La descripción es obligatoria")
     private String descripcion;
 
-    /* Duración estimada en minutos */
     @NotNull(message = "La duración en minutos es obligatoria")
     private Integer duracionMinutos;
 
-    /* Precio del servicio */
-    @NotNull(message = "El precio es obligatorio")
+    /* Nullable — se muestra como "Consultar precio". */
     private Double precio;
 
-    /* Estado de disponibilidad del servicio */
     @NotNull(message = "El estado activo es obligatorio")
     private Boolean activo;
 }

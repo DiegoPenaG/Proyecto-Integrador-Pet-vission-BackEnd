@@ -1,17 +1,22 @@
 package com.petvission.turno.controller;
 
 import com.petvission.shared.response.ApiResponse;
+import com.petvission.turno.dto.ActualizarDisponibilidadDto;
+import com.petvission.turno.dto.GeneracionResponseDto;
+import com.petvission.turno.dto.HorarioPlantillaResponseDto;
 import com.petvission.turno.dto.TurnoDetalleResponseDto;
 import com.petvission.turno.dto.TurnoRequestDto;
 import com.petvission.turno.dto.TurnoResponseDto;
 import com.petvission.turno.service.TurnoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -46,6 +51,56 @@ public class TurnoController {
     }
 
     /*
+     * PLANTILLAS DE HORARIO POR VETERINARIO — ADMIN, VETERINARIO
+     */
+    @GetMapping("/horario-plantilla/veterinario/{idVeterinario}")
+    @PreAuthorize("hasRole('ADMINISTRADOR') or hasRole('VETERINARIO')")
+    public ResponseEntity<ApiResponse<List<HorarioPlantillaResponseDto>>> listarPlantillasPorVeterinario(
+            @PathVariable Long idVeterinario
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.success(turnoService.listarPlantillasPorVeterinario(idVeterinario))
+        );
+    }
+
+    /*
+     * TODAS LAS PLANTILLAS DE HORARIO — SOLO ADMIN
+     */
+    @GetMapping("/horario-plantilla/todas")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<List<HorarioPlantillaResponseDto>>> listarTodasLasPlantillas() {
+        return ResponseEntity.ok(
+                ApiResponse.success(turnoService.listarTodasLasPlantillas())
+        );
+    }
+
+    /*
+     * ACTIVAR PLANTILLA DE HORARIO — SOLO ADMIN
+     */
+    @PatchMapping("/horario-plantilla/{id}/activar")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<HorarioPlantillaResponseDto>> activarPlantilla(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.success(turnoService.activarPlantilla(id))
+        );
+    }
+
+    /*
+     * DESACTIVAR PLANTILLA DE HORARIO — SOLO ADMIN
+     */
+    @PatchMapping("/horario-plantilla/{id}/desactivar")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<HorarioPlantillaResponseDto>> desactivarPlantilla(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.success(turnoService.desactivarPlantilla(id))
+        );
+    }
+
+    /*
      * DETALLES DISPONIBLES DE UN TURNO — TODOS
      */
     @GetMapping("/{id}/detalles/disponibles")
@@ -59,17 +114,20 @@ public class TurnoController {
 
     /*
      * DISPONIBILIDAD POR VETERINARIO — TODOS
-     * Retorna los slots disponibles de un veterinario con fecha incluida
+     * Sin ?fecha → retorna todos los slots disponibles (comportamiento original).
+     * Con ?fecha=YYYY-MM-DD → filtra por ese día.
      */
     @GetMapping("/veterinario/{idVeterinario}/disponibilidad")
     public ResponseEntity<ApiResponse<List<TurnoDetalleResponseDto>>> obtenerDisponibilidad(
-            @PathVariable Long idVeterinario
+            @PathVariable Long idVeterinario,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha
     ) {
-        return ResponseEntity.ok(
-                ApiResponse.success(
-                        turnoService.obtenerDisponibilidadVeterinario(idVeterinario)
-                )
-        );
+        List<TurnoDetalleResponseDto> slots = (fecha != null)
+                ? turnoService.obtenerDisponibilidadPorFecha(idVeterinario, fecha)
+                : turnoService.obtenerDisponibilidadVeterinario(idVeterinario);
+
+        return ResponseEntity.ok(ApiResponse.success(slots));
     }
 
     /*
@@ -108,6 +166,35 @@ public class TurnoController {
     ) {
         return ResponseEntity.ok(
                 ApiResponse.success(turnoService.desactivar(id))
+        );
+    }
+
+    /*
+     * GENERAR TURNOS DESDE PLANTILLAS — SOLO ADMIN
+     * POST /api/turnos/generar?dias=7
+     */
+    @PostMapping("/generar")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<GeneracionResponseDto>> generar(
+            @RequestParam(defaultValue = "7") int dias
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.success(turnoService.generarTurnos(dias))
+        );
+    }
+
+    /*
+     * ACTUALIZAR DISPONIBILIDAD DE UN SLOT — ADMIN, VETERINARIO
+     * PUT /api/turnos/{id}/disponibilidad
+     */
+    @PutMapping("/{id}/disponibilidad")
+    @PreAuthorize("hasRole('ADMINISTRADOR') or hasRole('VETERINARIO')")
+    public ResponseEntity<ApiResponse<TurnoDetalleResponseDto>> actualizarDisponibilidad(
+            @PathVariable Long id,
+            @RequestBody ActualizarDisponibilidadDto dto
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.success(turnoService.actualizarDisponibilidad(id, dto))
         );
     }
 }

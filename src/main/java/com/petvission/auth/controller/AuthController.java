@@ -4,6 +4,7 @@ package com.petvission.auth.controller;
 
 import com.petvission.auth.dto.AuthRequestDto;
 import com.petvission.auth.dto.AuthResponseDto;
+import com.petvission.auth.dto.GoogleAuthRequestDto;
 import com.petvission.auth.dto.RegisterRequestDto;
 import com.petvission.auth.service.AuthService;
 import com.petvission.shared.response.ApiResponse;
@@ -30,6 +31,15 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response));
+    }
+
+    // POST /api/auth/google
+    @PostMapping("/google")
+    public ResponseEntity<ApiResponse<AuthResponseDto>> loginConGoogle(
+            @Valid @RequestBody GoogleAuthRequestDto dto) {
+
+        AuthResponseDto response = authService.loginConGoogle(dto);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // POST /api/auth/login

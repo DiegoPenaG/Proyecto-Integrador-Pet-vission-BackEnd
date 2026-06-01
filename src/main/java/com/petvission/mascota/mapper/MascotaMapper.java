@@ -61,6 +61,10 @@ public class MascotaMapper {
                 mascota.getEstado()
         );
 
+        dto.setAnimalGuia(
+                mascota.getAnimalGuia()
+        );
+
         /*
          * ASIGNACIÓN DE DATOS
          * DEL USUARIO
@@ -118,6 +122,10 @@ public class MascotaMapper {
 
         mascota.setPeso(
                 dto.getPeso()
+        );
+
+        mascota.setAnimalGuia(
+                dto.getAnimalGuia() != null ? dto.getAnimalGuia() : false
         );
 
         return mascota;

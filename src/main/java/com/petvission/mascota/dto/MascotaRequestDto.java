@@ -24,4 +24,6 @@ public class MascotaRequestDto {
     @DecimalMin(value = "0.0", inclusive = false,
             message = "El peso debe ser mayor a 0")
     private BigDecimal peso;
+
+    private Boolean animalGuia;
 }

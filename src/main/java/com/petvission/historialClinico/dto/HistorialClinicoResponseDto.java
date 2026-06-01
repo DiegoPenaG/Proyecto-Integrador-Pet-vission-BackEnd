@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -29,4 +30,8 @@ public class HistorialClinicoResponseDto {
     private LocalDateTime fechaRegistro;
 
     private String receta;
+
+    private List<TratamientoResponseDto> tratamientos;
+
+    private List<VacunaEnHistorialDto> vacunas;
 }

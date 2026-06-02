@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.security.access.AccessDeniedException;
+
 import com.petvission.historialClinico.dto.HistorialClinicoRequestDto;
 import com.petvission.historialClinico.dto.HistorialClinicoResponseDto;
 import com.petvission.historialClinico.dto.NuevaConsultaRequestDto;
@@ -138,7 +140,7 @@ public class HistorialClinicoService {
                 .veterinario(veterinario)
                 .diagnostico(dto.getDiagnostico())
                 .tratamiento(dto.getTratamiento())
-                .observaciones("")
+                .observaciones(dto.getObservaciones() != null ? dto.getObservaciones() : "")
                 .receta(dto.getReceta())
                 .peso(dto.getPeso())
                 .build();
@@ -179,11 +181,25 @@ public class HistorialClinicoService {
 
     /*
      * OBTENER HISTORIAL DE MASCOTA (con tratamientos y vacunas)
+     * CLIENTE: solo puede ver historial de sus propias mascotas.
      */
     @Transactional(readOnly = true)
     public List<HistorialClinicoResponseDto> obtenerHistorialMascota(
             Long idMascota
     ) {
+        Mascota mascota = mascotaRepository
+                .findById(idMascota)
+                .orElseThrow(() -> new ResourceNotFoundException("Mascota no encontrada"));
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Usuario currentUser = (Usuario) auth.getPrincipal();
+        boolean isCliente = currentUser.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_CLIENTE"));
+
+        if (isCliente && !mascota.getUsuario().getIdUsuario().equals(currentUser.getIdUsuario())) {
+            throw new AccessDeniedException("No tienes permiso para ver el historial de esta mascota");
+        }
+
         return historialRepository
                 .findByMascota_IdMascotaOrderByFechaRegistroDesc(idMascota)
                 .stream()

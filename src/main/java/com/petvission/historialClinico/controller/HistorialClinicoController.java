@@ -10,6 +10,7 @@ import com.petvission.shared.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,7 @@ public class HistorialClinicoController {
     /*
      * REGISTRAR DIAGNÓSTICO
      */
+    @PreAuthorize("hasRole('VETERINARIO')")
     @PatchMapping("/{idHistorial}/diagnostico")
     public ResponseEntity<ApiResponse<HistorialClinicoResponseDto>>
     registrarDiagnostico(
@@ -54,6 +56,7 @@ public class HistorialClinicoController {
     /*
      * REGISTRAR TRATAMIENTO
      */
+    @PreAuthorize("hasRole('VETERINARIO')")
     @PatchMapping("/{idHistorial}/tratamiento")
     public ResponseEntity<ApiResponse<HistorialClinicoResponseDto>>
     registrarTratamiento(
@@ -76,6 +79,7 @@ public class HistorialClinicoController {
     /*
      * REGISTRAR OBSERVACIÓN
      */
+    @PreAuthorize("hasRole('VETERINARIO')")
     @PostMapping
     public ResponseEntity<ApiResponse<HistorialClinicoResponseDto>>
     registrarObservacion(
@@ -92,6 +96,7 @@ public class HistorialClinicoController {
     /*
      * OBTENER HISTORIAL MASCOTA
      */
+    @PreAuthorize("hasAnyRole('VETERINARIO','ADMINISTRADOR','CLIENTE')")
     @GetMapping("/mascota/{idMascota}")
     public ResponseEntity<ApiResponse<List<HistorialClinicoResponseDto>>>
     obtenerHistorialMascota(
@@ -110,6 +115,7 @@ public class HistorialClinicoController {
     /*
      * CREAR CONSULTA COMPLETA (vet extraído del JWT)
      */
+    @PreAuthorize("hasRole('VETERINARIO')")
     @PostMapping("/mascota/{idMascota}")
     public ResponseEntity<ApiResponse<HistorialClinicoResponseDto>>
     crearConsulta(

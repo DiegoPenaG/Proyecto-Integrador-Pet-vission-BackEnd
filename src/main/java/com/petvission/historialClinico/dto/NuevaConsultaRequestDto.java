@@ -16,6 +16,7 @@ public class NuevaConsultaRequestDto {
     private String tratamiento;
     private String indicaciones;
     private String duracion;
+    private String observaciones;
     private String receta;
     private BigDecimal peso;
     private VacunaDto vacuna;

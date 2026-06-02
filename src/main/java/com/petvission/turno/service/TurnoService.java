@@ -59,6 +59,13 @@ public class TurnoService {
         return dto.getFecha() + "|" + dto.getHoraInicio();
     }
 
+    // Slot en el futuro: fecha posterior a hoy, o hoy con hora aún no pasada
+    private static boolean esFuturo(TurnoDetalleResponseDto dto) {
+        LocalDate hoy = LocalDate.now();
+        return dto.getFecha().isAfter(hoy)
+                || (dto.getFecha().isEqual(hoy) && dto.getHoraInicio().isAfter(LocalTime.now()));
+    }
+
     /*
      * LISTAR TODOS LOS TURNOS
      */
@@ -179,6 +186,7 @@ public class TurnoService {
                     return dto;
                 })
                 .filter(dto -> !ocupados.contains(clave(dto)))
+                .filter(TurnoService::esFuturo)
                 .toList();
     }
 
@@ -267,6 +275,7 @@ public class TurnoService {
                     return dto;
                 })
                 .filter(dto -> !ocupados.contains(clave(dto)))
+                .filter(TurnoService::esFuturo)
                 .toList();
     }
 

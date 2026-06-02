@@ -112,6 +112,12 @@ public class ReservaService {
             throw new IllegalArgumentException("El turno detalle seleccionado ya no está disponible");
         }
 
+        LocalDate hoy = LocalDate.now();
+        if (dto.getFecha().isBefore(hoy)
+                || (dto.getFecha().isEqual(hoy) && !dto.getHora().isAfter(LocalTime.now()))) {
+            throw new IllegalArgumentException("No se puede agendar en un horario que ya pasó");
+        }
+
         boolean ocupado = reservaRepository
                 .existsByVeterinario_IdUsuarioAndFechaAndHoraAndEstadoIn(
                         dto.getIdVeterinario(), dto.getFecha(), dto.getHora(),
@@ -237,6 +243,12 @@ public class ReservaService {
 
         if (dto.getFecha() == null || dto.getHora() == null) {
             throw new IllegalArgumentException("Se requiere nueva fecha y hora para reprogramar");
+        }
+
+        LocalDate hoy = LocalDate.now();
+        if (dto.getFecha().isBefore(hoy)
+                || (dto.getFecha().isEqual(hoy) && !dto.getHora().isAfter(LocalTime.now()))) {
+            throw new IllegalArgumentException("No se puede reprogramar en un horario que ya pasó");
         }
 
         // Verificar que el nuevo slot no esté ocupado por otra reserva activa

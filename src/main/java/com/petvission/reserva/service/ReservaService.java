@@ -112,11 +112,12 @@ public class ReservaService {
             throw new IllegalArgumentException("El turno detalle seleccionado ya no está disponible");
         }
 
-        boolean ocupado = reservaRepository.existsByVeterinarioAndFechaAndHora(
-                veterinario, dto.getFecha(), dto.getHora()
-        );
+        boolean ocupado = reservaRepository
+                .existsByVeterinario_IdUsuarioAndFechaAndHoraAndEstadoIn(
+                        dto.getIdVeterinario(), dto.getFecha(), dto.getHora(),
+                        List.of(EstadoReserva.PENDIENTE, EstadoReserva.CONFIRMADA));
         if (ocupado) {
-            throw new IllegalArgumentException("El veterinario ya tiene una reserva en ese turno");
+            throw new IllegalArgumentException("El veterinario ya tiene una reserva activa en ese horario");
         }
 
         Reserva reserva = Reserva.builder()
@@ -236,6 +237,16 @@ public class ReservaService {
 
         if (dto.getFecha() == null || dto.getHora() == null) {
             throw new IllegalArgumentException("Se requiere nueva fecha y hora para reprogramar");
+        }
+
+        // Verificar que el nuevo slot no esté ocupado por otra reserva activa
+        boolean nuevoSlotOcupado = reservaRepository.existeSlotOcupadoExcluyendo(
+                reserva.getVeterinario().getIdUsuario(),
+                dto.getFecha(), dto.getHora(),
+                List.of(EstadoReserva.PENDIENTE, EstadoReserva.CONFIRMADA),
+                idReserva);
+        if (nuevoSlotOcupado) {
+            throw new IllegalArgumentException("El horario seleccionado ya está reservado para ese veterinario");
         }
 
         // Liberar el slot anterior

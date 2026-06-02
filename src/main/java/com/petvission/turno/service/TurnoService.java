@@ -1,5 +1,7 @@
 package com.petvission.turno.service;
 
+import com.petvission.reserva.model.EstadoReserva;
+import com.petvission.reserva.repository.ReservaRepository;
 import com.petvission.shared.exception.ResourceNotFoundException;
 import com.petvission.turno.dto.ActualizarDisponibilidadDto;
 import com.petvission.turno.dto.GeneracionResponseDto;
@@ -21,12 +23,13 @@ import com.petvission.usuario.repository.UsuarioVeterinarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.petvission.shared.exception.ResourceNotFoundException;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +40,24 @@ public class TurnoService {
     private final UsuarioVeterinarioRepository veterinarioRepository;
     private final HorarioPlantillaRepository plantillaRepository;
     private final TurnoMapper turnoMapper;
+    private final ReservaRepository reservaRepository;
+
+    private static final List<EstadoReserva> ESTADOS_ACTIVOS =
+            List.of(EstadoReserva.PENDIENTE, EstadoReserva.CONFIRMADA);
+
+    // Clave de un slot: "YYYY-MM-DD|HH:mm" — usada para comparar ocupación
+    private Set<String> slotsOcupados(Long idVeterinario, LocalDate desde) {
+        return reservaRepository
+                .findByVeterinario_IdUsuarioAndFechaGreaterThanEqualAndEstadoIn(
+                        idVeterinario, desde, ESTADOS_ACTIVOS)
+                .stream()
+                .map(r -> r.getFecha() + "|" + r.getHora())
+                .collect(Collectors.toSet());
+    }
+
+    private static String clave(TurnoDetalleResponseDto dto) {
+        return dto.getFecha() + "|" + dto.getHoraInicio();
+    }
 
     /*
      * LISTAR TODOS LOS TURNOS
@@ -141,11 +162,13 @@ public class TurnoService {
     }
 
     /*
-     * DISPONIBILIDAD POR VETERINARIO
-     * Retorna todos los TurnoDetalle disponibles de un veterinario
-     * incluyendo la fecha del turno padre
+     * DISPONIBILIDAD POR VETERINARIO (todos los días futuros)
+     * Fuente de verdad: slot libre = disponible=true en turno_detalle
+     * Y no existe reserva PENDIENTE/CONFIRMADA para ese (vet, fecha, hora).
      */
     public List<TurnoDetalleResponseDto> obtenerDisponibilidadVeterinario(Long idVeterinario) {
+        Set<String> ocupados = slotsOcupados(idVeterinario, LocalDate.now());
+
         return turnoDetalleRepository
                 .findByTurno_Veterinario_IdUsuarioAndTurno_FechaGreaterThanEqualAndDisponibleTrue(
                         idVeterinario, LocalDate.now())
@@ -155,6 +178,7 @@ public class TurnoService {
                     dto.setFecha(td.getTurno().getFecha());
                     return dto;
                 })
+                .filter(dto -> !ocupados.contains(clave(dto)))
                 .toList();
     }
 
@@ -229,8 +253,11 @@ public class TurnoService {
 
     /*
      * DISPONIBILIDAD POR VETERINARIO Y FECHA
+     * Misma fuente de verdad que obtenerDisponibilidadVeterinario, acotada a un día.
      */
     public List<TurnoDetalleResponseDto> obtenerDisponibilidadPorFecha(Long idVeterinario, LocalDate fecha) {
+        Set<String> ocupados = slotsOcupados(idVeterinario, fecha);
+
         return turnoDetalleRepository
                 .findByTurno_Veterinario_IdUsuarioAndTurno_FechaAndDisponibleTrue(idVeterinario, fecha)
                 .stream()
@@ -239,6 +266,7 @@ public class TurnoService {
                     dto.setFecha(fecha);
                     return dto;
                 })
+                .filter(dto -> !ocupados.contains(clave(dto)))
                 .toList();
     }
 

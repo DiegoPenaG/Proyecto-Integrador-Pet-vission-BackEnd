@@ -13,12 +13,17 @@ public class NuevaConsultaRequestDto {
     @NotBlank(message = "El diagnóstico es obligatorio")
     private String diagnostico;
 
+    private Long idReserva;
     private String tratamiento;
     private String indicaciones;
     private String duracion;
     private String observaciones;
     private String receta;
     private BigDecimal peso;
+    private BigDecimal temperatura;
+    private Integer frecuenciaCardiaca;
+    private Integer frecuenciaRespiratoria;
+    private Integer saturacionOxigeno;
     private VacunaDto vacuna;
 
     @Data

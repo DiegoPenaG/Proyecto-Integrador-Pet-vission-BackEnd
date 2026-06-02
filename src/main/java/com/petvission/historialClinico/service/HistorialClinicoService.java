@@ -3,6 +3,10 @@ package com.petvission.historialClinico.service;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+
+import com.petvission.reserva.model.Reserva;
+import com.petvission.reserva.repository.ReservaRepository;
 
 import org.springframework.security.access.AccessDeniedException;
 
@@ -44,6 +48,7 @@ public class HistorialClinicoService {
     private final VacunaCatalogoRepository vacunaCatalogoRepository;
     private final MascotaRepository mascotaRepository;
     private final UsuarioVeterinarioRepository veterinarioRepository;
+    private final ReservaRepository reservaRepository;
 
     /*
      * REGISTRAR DIAGNÓSTICO
@@ -135,14 +140,29 @@ public class HistorialClinicoService {
                         "Veterinario no encontrado"
                 ));
 
+        Reserva reserva = null;
+        if (dto.getIdReserva() != null) {
+            reserva = reservaRepository.findById(dto.getIdReserva()).orElse(null);
+        }
+
+        if (dto.getPeso() != null) {
+            mascota.setPeso(dto.getPeso());
+            mascotaRepository.save(mascota);
+        }
+
         HistorialClinico historial = HistorialClinico.builder()
                 .mascota(mascota)
                 .veterinario(veterinario)
+                .reserva(reserva)
                 .diagnostico(dto.getDiagnostico())
                 .tratamiento(dto.getTratamiento())
                 .observaciones(dto.getObservaciones() != null ? dto.getObservaciones() : "")
                 .receta(dto.getReceta())
                 .peso(dto.getPeso())
+                .temperatura(dto.getTemperatura())
+                .frecuenciaCardiaca(dto.getFrecuenciaCardiaca())
+                .frecuenciaRespiratoria(dto.getFrecuenciaRespiratoria())
+                .saturacionOxigeno(dto.getSaturacionOxigeno())
                 .build();
 
         historial = historialRepository.save(historial);
@@ -205,6 +225,53 @@ public class HistorialClinicoService {
                 .stream()
                 .map(this::buildEnrichedDto)
                 .toList();
+    }
+
+    /*
+     * OBTENER HISTORIAL POR RESERVA (para detección de modo edición)
+     */
+    @Transactional(readOnly = true)
+    public Optional<HistorialClinicoResponseDto> obtenerHistorialPorReserva(Long idReserva) {
+        return historialRepository
+                .findByReserva_IdReserva(idReserva)
+                .map(this::buildEnrichedDto);
+    }
+
+    /*
+     * EDITAR CONSULTA (solo el vet que la creó)
+     */
+    @Transactional
+    public HistorialClinicoResponseDto editarConsulta(
+            Long idHistorial,
+            NuevaConsultaRequestDto dto
+    ) {
+        HistorialClinico historial = historialRepository
+                .findById(idHistorial)
+                .orElseThrow(() -> new ResourceNotFoundException("Historial clínico no encontrado"));
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Usuario currentUser = (Usuario) auth.getPrincipal();
+
+        if (!historial.getVeterinario().getIdUsuario().equals(currentUser.getIdUsuario())) {
+            throw new AccessDeniedException("Solo el veterinario que creó este historial puede editarlo");
+        }
+
+        if (dto.getPeso() != null) {
+            historial.getMascota().setPeso(dto.getPeso());
+            mascotaRepository.save(historial.getMascota());
+        }
+
+        historial.setDiagnostico(dto.getDiagnostico());
+        historial.setTratamiento(dto.getTratamiento());
+        historial.setObservaciones(dto.getObservaciones() != null ? dto.getObservaciones() : "");
+        historial.setReceta(dto.getReceta());
+        historial.setPeso(dto.getPeso());
+        historial.setTemperatura(dto.getTemperatura());
+        historial.setFrecuenciaCardiaca(dto.getFrecuenciaCardiaca());
+        historial.setFrecuenciaRespiratoria(dto.getFrecuenciaRespiratoria());
+        historial.setSaturacionOxigeno(dto.getSaturacionOxigeno());
+
+        return buildEnrichedDto(historialRepository.save(historial));
     }
 
     /*

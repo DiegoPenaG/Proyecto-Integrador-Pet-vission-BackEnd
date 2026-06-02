@@ -118,4 +118,16 @@ public interface ReservaRepository
             Long idVeterinario,
             LocalDate fecha
     );
+
+    /*
+     * RESERVAS VENCIDAS PARA AUTO-CANCEL
+     * Selecciona PENDIENTE/CONFIRMADA cuya fecha+hora ya superó el umbral.
+     */
+    @Query("SELECT r FROM Reserva r WHERE r.estado IN :estados AND " +
+           "(r.fecha < :hoy OR (r.fecha = :hoy AND r.hora < :horaLimite))")
+    List<Reserva> findReservasVencidas(
+            @Param("estados") List<EstadoReserva> estados,
+            @Param("hoy") LocalDate hoy,
+            @Param("horaLimite") LocalTime horaLimite
+    );
 }

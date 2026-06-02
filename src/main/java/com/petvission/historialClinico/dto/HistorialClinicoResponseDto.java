@@ -15,9 +15,13 @@ public class HistorialClinicoResponseDto {
 
     private Long idHistorial;
 
+    private Long idReserva;
+
     private String nombreMascota;
 
     private String nombreVeterinario;
+
+    private Long idVeterinario;
 
     private String diagnostico;
 
@@ -26,6 +30,14 @@ public class HistorialClinicoResponseDto {
     private String observaciones;
 
     private BigDecimal peso;
+
+    private BigDecimal temperatura;
+
+    private Integer frecuenciaCardiaca;
+
+    private Integer frecuenciaRespiratoria;
+
+    private Integer saturacionOxigeno;
 
     private LocalDateTime fechaRegistro;
 

@@ -10,9 +10,10 @@ public class HistorialClinicoMapper {
     ) {
         return HistorialClinicoResponseDto.builder()
                 .idHistorial(historial.getIdHistorial())
-                .nombreMascota(
-                        historial.getMascota().getNombre()
-                )
+                .idReserva(historial.getReserva() != null
+                        ? historial.getReserva().getIdReserva() : null)
+                .idVeterinario(historial.getVeterinario().getIdUsuario())
+                .nombreMascota(historial.getMascota().getNombre())
                 .nombreVeterinario(
                         historial.getVeterinario().getUsuario().getNombres()
                                 + " " +
@@ -20,9 +21,13 @@ public class HistorialClinicoMapper {
                 )
                 .diagnostico(historial.getDiagnostico())
                 .tratamiento(historial.getTratamiento())
-                .receta(historial.getReceta())           // ← faltaba
+                .receta(historial.getReceta())
                 .observaciones(historial.getObservaciones())
                 .peso(historial.getPeso())
+                .temperatura(historial.getTemperatura())
+                .frecuenciaCardiaca(historial.getFrecuenciaCardiaca())
+                .frecuenciaRespiratoria(historial.getFrecuenciaRespiratoria())
+                .saturacionOxigeno(historial.getSaturacionOxigeno())
                 .fechaRegistro(historial.getFechaRegistro())
                 .build();
     }

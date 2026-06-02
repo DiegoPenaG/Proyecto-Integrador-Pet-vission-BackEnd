@@ -2,13 +2,17 @@ package com.petvission.vacunacion.controller;
 
 import com.petvission.shared.response.ApiResponse;
 import com.petvission.vacunacion.dto.VacunacionRequestDto;
+import com.petvission.vacunacion.dto.VacunacionDesdeConsultaDto;
 import com.petvission.vacunacion.dto.VacunacionResponseDto;
 import com.petvission.vacunacion.model.VacunaCatalogo;
 import com.petvission.vacunacion.service.VacunacionService;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 
 import org.springframework.web.bind.annotation.*;
 
@@ -40,6 +44,22 @@ public class VacunacionController {
     public ResponseEntity<ApiResponse<List<VacunaCatalogo>>> obtenerCatalogo() {
         return ResponseEntity.ok(
                 ApiResponse.success(vacunacionService.obtenerCatalogo())
+        );
+    }
+
+    /*
+     * REGISTRAR VACUNACIÓN DESDE CONSULTA (vet extraído del JWT)
+     */
+    @PreAuthorize("hasRole('VETERINARIO')")
+    @PostMapping("/desde-consulta")
+    public ResponseEntity<ApiResponse<VacunacionResponseDto>> registrarDesdeConsulta(
+            @RequestBody VacunacionDesdeConsultaDto dto,
+            Authentication auth
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.success(
+                        vacunacionService.registrarDesdeConsulta(dto, auth)
+                )
         );
     }
 }

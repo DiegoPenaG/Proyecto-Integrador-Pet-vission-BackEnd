@@ -159,13 +159,13 @@ public class ReservaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
 
         EstadoReserva estado = reserva.getEstado();
-        if (estado != EstadoReserva.PENDIENTE && estado != EstadoReserva.CONFIRMADA) {
+        if (estado == EstadoReserva.COMPLETADA || estado == EstadoReserva.CANCELADA) {
             throw new IllegalStateException(
                     "No se puede cancelar una reserva en estado " + estado);
         }
 
-        // ADMIN: puede cancelar cualquier estado
-        // VET asignado: puede cancelar PENDIENTE y CONFIRMADA (incluyendo no-show)
+        // ADMIN: puede cancelar cualquier estado activo
+        // VET asignado: puede cancelar PENDIENTE, CONFIRMADA y EN_ATENCION (no-show)
         // CLIENTE dueño: solo puede cancelar PENDIENTE
         boolean autorizado = esAdmin(auth)
                 || esVetAsignado(reserva, auth)
@@ -204,6 +204,34 @@ public class ReservaService {
         return reservaMapper.toUsuarioDto(reservaRepository.save(reserva));
     }
 
+    // ─── Iniciar atención ────────────────────────────────────────────
+    // PENDIENTE/CONFIRMADA → EN_ATENCION. Idempotente si ya está EN_ATENCION.
+
+    @Transactional
+    public ReservaUsuarioDto iniciarAtencion(Long idReserva, Authentication auth) {
+
+        Reserva reserva = reservaRepository.findById(idReserva)
+                .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
+
+        if (reserva.getEstado() == EstadoReserva.EN_ATENCION) {
+            return reservaMapper.toUsuarioDto(reserva);
+        }
+
+        if (reserva.getEstado() != EstadoReserva.PENDIENTE
+                && reserva.getEstado() != EstadoReserva.CONFIRMADA) {
+            throw new IllegalStateException(
+                    "Solo se puede iniciar atención desde PENDIENTE o CONFIRMADA (estado actual: "
+                            + reserva.getEstado() + ")");
+        }
+
+        if (!esAdmin(auth) && !esVetAsignado(reserva, auth)) {
+            throw new UnauthorizedException("Solo el veterinario asignado o un administrador puede iniciar la atención");
+        }
+
+        reserva.setEstado(EstadoReserva.EN_ATENCION);
+        return reservaMapper.toUsuarioDto(reservaRepository.save(reserva));
+    }
+
     // ─── Completar ───────────────────────────────────────────────────
 
     @Transactional
@@ -212,9 +240,10 @@ public class ReservaService {
         Reserva reserva = reservaRepository.findById(idReserva)
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
 
-        if (reserva.getEstado() != EstadoReserva.CONFIRMADA) {
+        if (reserva.getEstado() != EstadoReserva.CONFIRMADA
+                && reserva.getEstado() != EstadoReserva.EN_ATENCION) {
             throw new IllegalStateException(
-                    "Solo se puede completar una reserva CONFIRMADA (estado actual: "
+                    "Solo se puede completar una reserva CONFIRMADA o EN_ATENCION (estado actual: "
                             + reserva.getEstado() + ")");
         }
 

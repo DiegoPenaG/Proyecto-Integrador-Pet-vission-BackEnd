@@ -185,10 +185,11 @@ public class ReservaService {
         return reservaMapper.toUsuarioDto(reservaRepository.save(reserva));
     }
 
-    // ─── Confirmar (interno — invocado por RecordatorioService) ──────
+    // ─── Confirmar ───────────────────────────────────────────────────
+    // Invocado por el vet desde el panel de citas y por RecordatorioService.
 
     @Transactional
-    public void confirmarReserva(Long idReserva) {
+    public ReservaUsuarioDto confirmarReserva(Long idReserva) {
 
         Reserva reserva = reservaRepository.findById(idReserva)
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
@@ -200,7 +201,7 @@ public class ReservaService {
         }
 
         reserva.setEstado(EstadoReserva.CONFIRMADA);
-        reservaRepository.save(reserva);
+        return reservaMapper.toUsuarioDto(reservaRepository.save(reserva));
     }
 
     // ─── Completar ───────────────────────────────────────────────────

@@ -177,7 +177,7 @@ public class TurnoService {
         Set<String> ocupados = slotsOcupados(idVeterinario, LocalDate.now());
 
         return turnoDetalleRepository
-                .findByTurno_Veterinario_IdUsuarioAndTurno_FechaGreaterThanEqualAndDisponibleTrue(
+                .findByTurno_Veterinario_IdUsuarioAndTurno_FechaGreaterThanEqualAndDisponibleTrueOrderByTurno_FechaAscHoraInicioAsc(
                         idVeterinario, LocalDate.now())
                 .stream()
                 .map(td -> {
@@ -267,7 +267,7 @@ public class TurnoService {
         Set<String> ocupados = slotsOcupados(idVeterinario, fecha);
 
         return turnoDetalleRepository
-                .findByTurno_Veterinario_IdUsuarioAndTurno_FechaAndDisponibleTrue(idVeterinario, fecha)
+                .findByTurno_Veterinario_IdUsuarioAndTurno_FechaAndDisponibleTrueOrderByHoraInicioAsc(idVeterinario, fecha)
                 .stream()
                 .map(td -> {
                     TurnoDetalleResponseDto dto = turnoMapper.toDetalleDto(td);

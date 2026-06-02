@@ -80,6 +80,14 @@ public interface ReservaRepository
     );
 
     /*
+     * RESERVAS ACTIVAS DE UNA MASCOTA — usado en reasignación de dueño
+     */
+    List<Reserva> findByMascota_IdMascotaAndEstadoIn(
+            Long idMascota,
+            List<EstadoReserva> estados
+    );
+
+    /*
      * RESERVAS POR ESTADO
      */
     List<Reserva> findByEstado(

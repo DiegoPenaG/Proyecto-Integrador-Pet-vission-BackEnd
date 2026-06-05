@@ -11,8 +11,7 @@ import java.util.List;
 public interface VacunacionRepository
         extends JpaRepository<Vacunacion, Long> {
 
-    /*
-     * VACUNACIONES POR HISTORIAL CLÍNICO
-     */
     List<Vacunacion> findByHistorialClinico_IdHistorial(Long idHistorial);
+
+    List<Vacunacion> findByMascota_IdMascotaOrderByFechaAplicacionDesc(Long idMascota);
 }

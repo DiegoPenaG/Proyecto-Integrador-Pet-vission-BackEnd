@@ -28,6 +28,7 @@ import com.petvission.reserva.model.Reserva;
 
 import com.petvission.reserva.repository.ReservaRepository;
 
+import com.petvission.notificacion.service.EmailService;
 import com.petvission.shared.exception.ResourceNotFoundException;
 import com.petvission.shared.exception.UnauthorizedException;
 
@@ -48,6 +49,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -61,6 +63,7 @@ public class ReservaService {
     private final ReservaMapper reservaMapper;
     private final TurnoDetalleRepository turnoDetalleRepository;
     private final RecordatorioRepository recordatorioRepository;
+    private final EmailService emailService;
 
     // ─── Helpers de autorización ─────────────────────────────────────
 
@@ -145,7 +148,12 @@ public class ReservaService {
 
         Reserva saved = reservaRepository.save(reserva);
 
-        recordatorioRepository.save(Recordatorio.builder().reserva(saved).build());
+        recordatorioRepository.save(Recordatorio.builder()
+                .reserva(saved)
+                .confirmationToken(UUID.randomUUID().toString())
+                .build());
+
+        emailService.enviarConfirmacionReserva(saved);
 
         return reservaMapper.toDto(saved);
     }

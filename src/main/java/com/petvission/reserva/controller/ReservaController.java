@@ -103,7 +103,7 @@ public class ReservaController {
         return ResponseEntity.ok(ApiResponse.success(reservaService.iniciarAtencion(id, auth)));
     }
 
-    // El veterinario confirma una reserva PENDIENTE → CONFIRMADA
+    // El veterinario confirma una reserva PENDIENTE → CONFIRMADA (panel de citas)
     @PatchMapping("/{id}/confirmar")
     @PreAuthorize("hasRole('VETERINARIO')")
     public ResponseEntity<ApiResponse<ReservaUsuarioDto>> confirmarReserva(

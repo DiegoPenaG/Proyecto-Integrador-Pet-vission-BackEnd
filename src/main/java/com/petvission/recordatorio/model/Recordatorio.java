@@ -35,4 +35,7 @@ public class Recordatorio {
 
     @Column(name = "fecha_confirmacion")
     private LocalDateTime fechaConfirmacion;
+
+    @Column(name = "confirmation_token", unique = true)
+    private String confirmationToken;
 }

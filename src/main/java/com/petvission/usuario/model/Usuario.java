@@ -5,6 +5,7 @@ package com.petvission.usuario.model;
 import com.petvission.usuario.model.Rol;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -59,6 +60,8 @@ public class Usuario implements UserDetails {
 
     // Relación con UsuarioVeterinario
     // Solo existe si el rol es VETERINARIO
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToOne(mappedBy = "usuario",
             cascade = CascadeType.ALL,
             fetch = FetchType.LAZY,

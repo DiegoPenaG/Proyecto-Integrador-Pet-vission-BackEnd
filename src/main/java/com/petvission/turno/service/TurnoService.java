@@ -10,6 +10,7 @@ import com.petvission.turno.dto.TurnoDetalleResponseDto;
 import com.petvission.turno.dto.HorarioPlantillaResponseDto;
 import com.petvission.turno.dto.TurnoRequestDto;
 import com.petvission.turno.dto.TurnoResponseDto;
+import com.petvission.turno.dto.SlotVetDisponibleDto;
 import com.petvission.turno.mapper.TurnoMapper;
 import com.petvission.turno.model.DiaSemana;
 import com.petvission.turno.model.HorarioPlantilla;
@@ -308,6 +309,44 @@ public class TurnoService {
                 })
                 .filter(dto -> !ocupados.contains(clave(dto)))
                 .filter(TurnoService::esFuturo)
+                .toList();
+    }
+
+    /*
+     * DISPONIBILIDAD MULTI-VET PARA UNA FECHA
+     * Retorna todos los slots libres de todos los vets para el día solicitado,
+     * ordenados por hora. Incluye el veterinario de cada slot.
+     */
+    public List<SlotVetDisponibleDto> obtenerDisponibilidadTodos(LocalDate fecha) {
+        Set<String> ocupados = reservaRepository
+                .findByFechaAndEstadoIn(fecha, ESTADOS_ACTIVOS)
+                .stream()
+                .map(r -> r.getVeterinario().getIdUsuario() + "|" + r.getHora())
+                .collect(Collectors.toSet());
+
+        LocalDate hoy = LocalDate.now();
+        LocalTime ahora = LocalTime.now();
+
+        return turnoDetalleRepository
+                .findByTurno_FechaAndDisponibleTrueOrderByHoraInicioAsc(fecha)
+                .stream()
+                .filter(td -> {
+                    String clave = td.getTurno().getVeterinario().getIdUsuario() + "|" + td.getHoraInicio();
+                    return !ocupados.contains(clave);
+                })
+                .filter(td -> !fecha.isEqual(hoy) || td.getHoraInicio().isAfter(ahora))
+                .map(td -> {
+                    var vet = td.getTurno().getVeterinario().getUsuario();
+                    return SlotVetDisponibleDto.builder()
+                            .idTurnoDetalle(td.getId())
+                            .horaInicio(td.getHoraInicio())
+                            .veterinario(SlotVetDisponibleDto.VetBriefDto.builder()
+                                    .idUsuario(td.getTurno().getVeterinario().getIdUsuario())
+                                    .nombres(vet.getNombres())
+                                    .apellidos(vet.getApellidos())
+                                    .build())
+                            .build();
+                })
                 .toList();
     }
 

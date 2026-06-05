@@ -8,6 +8,7 @@ import com.petvission.turno.dto.HorarioPlantillaResponseDto;
 import com.petvission.turno.dto.TurnoDetalleResponseDto;
 import com.petvission.turno.dto.TurnoRequestDto;
 import com.petvission.turno.dto.TurnoResponseDto;
+import com.petvission.turno.dto.SlotVetDisponibleDto;
 import com.petvission.turno.service.TurnoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -135,6 +136,17 @@ public class TurnoController {
         return ResponseEntity.ok(
                 ApiResponse.success(turnoService.listarDetallesDisponibles(id))
         );
+    }
+
+    /*
+     * DISPONIBILIDAD TODOS LOS VETS PARA UNA FECHA
+     * GET /api/turnos/disponibilidad?fecha=YYYY-MM-DD
+     */
+    @GetMapping("/disponibilidad")
+    public ResponseEntity<ApiResponse<List<SlotVetDisponibleDto>>> obtenerDisponibilidadTodos(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(turnoService.obtenerDisponibilidadTodos(fecha)));
     }
 
     /*

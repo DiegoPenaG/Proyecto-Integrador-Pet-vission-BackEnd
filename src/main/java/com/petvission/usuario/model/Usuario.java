@@ -44,6 +44,13 @@ public class Usuario implements UserDetails {
     @Column(name = "google_id")
     private String googleId;
 
+    @Column(name = "totp_secret")
+    private String totpSecret;
+
+    @Column(name = "totp_enabled", nullable = false)
+    @Builder.Default
+    private Boolean totpEnabled = false;
+
     @Column(nullable = false)
     @Builder.Default
     private Boolean estado = true;

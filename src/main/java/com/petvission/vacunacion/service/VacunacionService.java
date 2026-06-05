@@ -110,9 +110,10 @@ public class VacunacionService {
     }
 
     /*
-     * CATÁLOGO DE VACUNAS
+     * CATÁLOGO DE VACUNAS — filtra por especie si se indica (incluye siempre las generales)
      */
-    public List<VacunaCatalogo> obtenerCatalogo() {
-        return vacunaCatalogoRepository.findAll();
+    public List<VacunaCatalogo> obtenerCatalogo(String especie) {
+        if (especie == null || especie.isBlank()) return vacunaCatalogoRepository.findAll();
+        return vacunaCatalogoRepository.findByEspecieOrGeneral(especie.toUpperCase());
     }
 }

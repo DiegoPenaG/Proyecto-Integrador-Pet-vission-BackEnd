@@ -38,12 +38,14 @@ public class VacunacionController {
     }
 
     /*
-     * CATÁLOGO DE VACUNAS
+     * CATÁLOGO DE VACUNAS — ?especie=CANINA|FELINA filtra y añade las generales; sin param devuelve todo
      */
     @GetMapping("/catalogo")
-    public ResponseEntity<ApiResponse<List<VacunaCatalogo>>> obtenerCatalogo() {
+    public ResponseEntity<ApiResponse<List<VacunaCatalogo>>> obtenerCatalogo(
+            @RequestParam(required = false) String especie
+    ) {
         return ResponseEntity.ok(
-                ApiResponse.success(vacunacionService.obtenerCatalogo())
+                ApiResponse.success(vacunacionService.obtenerCatalogo(especie))
         );
     }
 

@@ -5,6 +5,7 @@ import com.petvission.reserva.repository.ReservaRepository;
 import com.petvission.shared.exception.ResourceNotFoundException;
 import com.petvission.turno.dto.ActualizarDisponibilidadDto;
 import com.petvission.turno.dto.GeneracionResponseDto;
+import com.petvission.turno.dto.HorarioPlantillaRequestDto;
 import com.petvission.turno.dto.TurnoDetalleResponseDto;
 import com.petvission.turno.dto.HorarioPlantillaResponseDto;
 import com.petvission.turno.dto.TurnoRequestDto;
@@ -156,6 +157,37 @@ public class TurnoService {
                 .horaFin(p.getHoraFin())
                 .activo(p.getActivo())
                 .build();
+    }
+
+    /*
+     * CREAR PLANTILLA DE HORARIO
+     */
+    @Transactional
+    public HorarioPlantillaResponseDto crearPlantilla(HorarioPlantillaRequestDto dto) {
+        UsuarioVeterinario vet = veterinarioRepository.findById(dto.getIdVeterinario())
+                .orElseThrow(() -> new ResourceNotFoundException("Veterinario no encontrado"));
+
+        HorarioPlantilla plantilla = HorarioPlantilla.builder()
+                .veterinario(vet)
+                .diaSemana(dto.getDiaSemana())
+                .horaInicio(dto.getHoraInicio())
+                .horaFin(dto.getHoraFin())
+                .activo(true)
+                .build();
+
+        return toPlantillaDto(plantillaRepository.save(plantilla));
+    }
+
+    /*
+     * ELIMINAR PLANTILLA DE HORARIO
+     * No cancela turnos ni reservas ya creados — solo afecta generación futura.
+     */
+    @Transactional
+    public void eliminarPlantilla(Long id) {
+        if (!plantillaRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Plantilla no encontrada");
+        }
+        plantillaRepository.deleteById(id);
     }
 
     /*

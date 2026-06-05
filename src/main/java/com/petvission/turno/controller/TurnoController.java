@@ -3,6 +3,7 @@ package com.petvission.turno.controller;
 import com.petvission.shared.response.ApiResponse;
 import com.petvission.turno.dto.ActualizarDisponibilidadDto;
 import com.petvission.turno.dto.GeneracionResponseDto;
+import com.petvission.turno.dto.HorarioPlantillaRequestDto;
 import com.petvission.turno.dto.HorarioPlantillaResponseDto;
 import com.petvission.turno.dto.TurnoDetalleResponseDto;
 import com.petvission.turno.dto.TurnoRequestDto;
@@ -72,6 +73,30 @@ public class TurnoController {
         return ResponseEntity.ok(
                 ApiResponse.success(turnoService.listarTodasLasPlantillas())
         );
+    }
+
+    /*
+     * CREAR PLANTILLA DE HORARIO — SOLO ADMIN
+     */
+    @PostMapping("/horario-plantilla")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<HorarioPlantillaResponseDto>> crearPlantilla(
+            @RequestBody HorarioPlantillaRequestDto dto
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.success(turnoService.crearPlantilla(dto))
+        );
+    }
+
+    /*
+     * ELIMINAR PLANTILLA DE HORARIO — SOLO ADMIN
+     * No cancela turnos ni reservas existentes.
+     */
+    @DeleteMapping("/horario-plantilla/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Void> eliminarPlantilla(@PathVariable Long id) {
+        turnoService.eliminarPlantilla(id);
+        return ResponseEntity.noContent().build();
     }
 
     /*

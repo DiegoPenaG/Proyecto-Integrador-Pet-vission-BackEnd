@@ -36,15 +36,18 @@ public class EmailService {
 
     public void enviarConfirmacionReserva(Reserva reserva) {
         if (!preferenciaHabilitada(reserva.getUsuario().getIdUsuario(), "confirmacion")) return;
-
-        Context ctx = buildContextBase(reserva);
-        String html = templateEngine.process("email/email-confirmacion", ctx);
-        String error = enviarHtml(
-                reserva.getUsuario().getCorreo(),
-                "✅ Confirmación de cita — PetVision",
-                html
-        );
-        registrarLog(reserva, error);
+        try {
+            Context ctx = buildContextBase(reserva);
+            String html = templateEngine.process("email/email-confirmacion", ctx);
+            String error = enviarHtml(
+                    reserva.getUsuario().getCorreo(),
+                    "✅ Confirmación de cita — PetVision",
+                    html
+            );
+            registrarLog(reserva, error);
+        } catch (Exception e) {
+            log.error("Error al procesar/enviar confirmación de reserva {}: {}", reserva.getIdReserva(), e.getMessage());
+        }
     }
 
     public void enviarRecordatorio7Dias(Reserva reserva, String confirmationToken) {

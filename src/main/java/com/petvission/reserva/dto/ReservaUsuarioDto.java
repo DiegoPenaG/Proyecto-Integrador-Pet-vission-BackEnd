@@ -21,6 +21,8 @@ public class ReservaUsuarioDto {
 
     private String nombreCliente;
 
+    private Long idVeterinario;
+
     private String nombreVeterinario;
 
     private LocalDate fecha;

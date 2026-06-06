@@ -31,4 +31,8 @@ public class VacunaCatalogo {
 
     @Column(name = "dosis")
     private String dosis;
+
+    // "CANINA", "FELINA", null = aplica a todas las especies
+    @Column(name = "especie")
+    private String especie;
 }

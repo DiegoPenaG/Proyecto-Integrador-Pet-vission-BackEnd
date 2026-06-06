@@ -5,6 +5,7 @@ package com.petvission.usuario.model;
 import com.petvission.usuario.model.Rol;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -43,6 +44,13 @@ public class Usuario implements UserDetails {
     @Column(name = "google_id")
     private String googleId;
 
+    @Column(name = "totp_secret")
+    private String totpSecret;
+
+    @Column(name = "totp_enabled", nullable = false)
+    @Builder.Default
+    private Boolean totpEnabled = false;
+
     @Column(nullable = false)
     @Builder.Default
     private Boolean estado = true;
@@ -59,6 +67,8 @@ public class Usuario implements UserDetails {
 
     // Relación con UsuarioVeterinario
     // Solo existe si el rol es VETERINARIO
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToOne(mappedBy = "usuario",
             cascade = CascadeType.ALL,
             fetch = FetchType.LAZY,

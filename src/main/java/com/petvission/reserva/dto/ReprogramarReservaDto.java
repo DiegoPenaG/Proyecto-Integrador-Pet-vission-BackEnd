@@ -16,7 +16,7 @@ import java.time.LocalTime;
 @Builder
 public class ReprogramarReservaDto {
 
-    private LocalDate nuevaFecha;
+    private LocalDate fecha;
 
-    private LocalTime nuevaHora;
+    private LocalTime hora;
 }

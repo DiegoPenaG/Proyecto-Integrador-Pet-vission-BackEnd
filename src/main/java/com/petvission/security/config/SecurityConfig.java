@@ -48,6 +48,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/v3/api-docs"
                         ).permitAll()
+                        // Confirmación de cita vía enlace de email (token en query param, sin JWT)
+                        .requestMatchers(HttpMethod.POST, "/api/reservas/*/confirmar").permitAll()
                         // Todo lo demás requiere autenticación
                         .anyRequest().authenticated()
                 )

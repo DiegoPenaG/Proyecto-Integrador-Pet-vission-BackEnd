@@ -7,6 +7,10 @@ import com.petvission.mascota.repository.MascotaRepository;
 import com.petvission.shared.exception.ResourceNotFoundException;
 import com.petvission.usuario.model.UsuarioVeterinario;
 import com.petvission.usuario.repository.UsuarioVeterinarioRepository;
+import com.petvission.usuario.model.Usuario;
+import com.petvission.usuario.model.UsuarioVeterinario;
+import com.petvission.usuario.repository.UsuarioVeterinarioRepository;
+import com.petvission.vacunacion.dto.VacunacionDesdeConsultaDto;
 import com.petvission.vacunacion.dto.VacunacionRequestDto;
 import com.petvission.vacunacion.dto.VacunacionResponseDto;
 import com.petvission.vacunacion.mapper.VacunacionMapper;
@@ -15,8 +19,10 @@ import com.petvission.vacunacion.model.Vacunacion;
 import com.petvission.vacunacion.repository.VacunaCatalogoRepository;
 import com.petvission.vacunacion.repository.VacunacionRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,7 +32,7 @@ public class VacunacionService {
     private final VacunacionRepository vacunacionRepository;
     private final VacunaCatalogoRepository vacunaCatalogoRepository;
     private final MascotaRepository mascotaRepository;
-    private final HistorialClinicoRepository historialClinicoRepository; // ← minúscula
+    private final HistorialClinicoRepository historialClinicoRepository;
     private final UsuarioVeterinarioRepository usuarioVeterinarioRepository;
 
     /*
@@ -68,9 +74,46 @@ public class VacunacionService {
     }
 
     /*
-     * CATÁLOGO DE VACUNAS
+     * REGISTRAR VACUNACIÓN DESDE CONSULTA (vet extraído del JWT)
      */
-    public List<VacunaCatalogo> obtenerCatalogo() {
-        return vacunaCatalogoRepository.findAll();
+    public VacunacionResponseDto registrarDesdeConsulta(
+            VacunacionDesdeConsultaDto dto,
+            Authentication auth
+    ) {
+        Usuario currentUser = (Usuario) auth.getPrincipal();
+
+        Mascota mascota = mascotaRepository.findById(dto.getIdMascota())
+                .orElseThrow(() -> new ResourceNotFoundException("Mascota no encontrada"));
+
+        VacunaCatalogo vacuna = vacunaCatalogoRepository.findById(dto.getIdVacuna())
+                .orElseThrow(() -> new ResourceNotFoundException("Vacuna no encontrada"));
+
+        HistorialClinico historial = historialClinicoRepository.findById(dto.getIdHistorial())
+                .orElseThrow(() -> new ResourceNotFoundException("Historial clínico no encontrado"));
+
+        UsuarioVeterinario veterinario = usuarioVeterinarioRepository
+                .findByUsuario_IdUsuario(currentUser.getIdUsuario())
+                .orElseThrow(() -> new ResourceNotFoundException("Veterinario no encontrado"));
+
+        Vacunacion vacunacion = Vacunacion.builder()
+                .mascota(mascota)
+                .vacuna(vacuna)
+                .veterinario(veterinario)
+                .historialClinico(historial)
+                .fechaAplicacion(dto.getFechaAplicacion() != null
+                        ? dto.getFechaAplicacion() : LocalDate.now())
+                .proximaDosis(dto.getFechaProxima())
+                .lote(dto.getLote())
+                .build();
+
+        return VacunacionMapper.toDto(vacunacionRepository.save(vacunacion));
+    }
+
+    /*
+     * CATÁLOGO DE VACUNAS — filtra por especie si se indica (incluye siempre las generales)
+     */
+    public List<VacunaCatalogo> obtenerCatalogo(String especie) {
+        if (especie == null || especie.isBlank()) return vacunaCatalogoRepository.findAll();
+        return vacunaCatalogoRepository.findByEspecieOrGeneral(especie.toUpperCase());
     }
 }

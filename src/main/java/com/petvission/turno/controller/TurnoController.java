@@ -2,6 +2,7 @@ package com.petvission.turno.controller;
 
 import com.petvission.shared.response.ApiResponse;
 import com.petvission.turno.dto.ActualizarDisponibilidadDto;
+import com.petvission.turno.dto.ActualizarTurnoVetDto;
 import com.petvission.turno.dto.GeneracionResponseDto;
 import com.petvission.turno.dto.HorarioPlantillaRequestDto;
 import com.petvission.turno.dto.HorarioPlantillaResponseDto;
@@ -232,6 +233,21 @@ public class TurnoController {
     ) {
         return ResponseEntity.ok(
                 ApiResponse.success(turnoService.actualizarDisponibilidad(id, dto))
+        );
+    }
+
+    /*
+     * CAMBIAR TURNO DE VETERINARIO — SOLO ADMIN
+     * PATCH /api/turnos/horario-plantilla/veterinario/{idVet}/turno
+     */
+    @PatchMapping("/horario-plantilla/veterinario/{idVet}/turno")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<List<HorarioPlantillaResponseDto>>> cambiarTurnoVeterinario(
+            @PathVariable Long idVet,
+            @RequestBody ActualizarTurnoVetDto dto
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.success(turnoService.cambiarTurnoVeterinario(idVet, dto.getTipoTurno()))
         );
     }
 }

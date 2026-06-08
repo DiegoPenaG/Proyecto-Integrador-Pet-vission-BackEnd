@@ -192,6 +192,33 @@ public class TurnoService {
     }
 
     /*
+     * CAMBIAR TURNO DE UN VETERINARIO (todas sus plantillas)
+     * Horas estándar: MANANA 08-14, TARDE 14-20, NOCHE 20-00.
+     */
+    @Transactional
+    public List<HorarioPlantillaResponseDto> cambiarTurnoVeterinario(Long idVet, TipoTurno tipoTurno) {
+        List<HorarioPlantilla> plantillas = plantillaRepository.findByVeterinario_IdUsuario(idVet);
+        if (plantillas.isEmpty()) {
+            throw new ResourceNotFoundException("No se encontraron plantillas para el veterinario");
+        }
+        LocalTime horaInicio;
+        LocalTime horaFin;
+        switch (tipoTurno) {
+            case MANANA -> { horaInicio = LocalTime.of(8,  0); horaFin = LocalTime.of(14, 0); }
+            case TARDE  -> { horaInicio = LocalTime.of(14, 0); horaFin = LocalTime.of(20, 0); }
+            case NOCHE  -> { horaInicio = LocalTime.of(20, 0); horaFin = LocalTime.of(0,  0); }
+            default     -> throw new IllegalArgumentException("Tipo de turno inválido: " + tipoTurno);
+        }
+        for (HorarioPlantilla p : plantillas) {
+            p.setHoraInicio(horaInicio);
+            p.setHoraFin(horaFin);
+        }
+        return plantillaRepository.saveAll(plantillas).stream()
+                .map(this::toPlantillaDto)
+                .toList();
+    }
+
+    /*
      * LISTAR DETALLES DISPONIBLES DE UN TURNO
      */
     public List<TurnoDetalleResponseDto> listarDetallesDisponibles(Long idTurno) {

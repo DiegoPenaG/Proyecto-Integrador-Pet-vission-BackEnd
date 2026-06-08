@@ -25,4 +25,6 @@ public interface TurnoDetalleRepository extends JpaRepository<TurnoDetalle, Long
 
     boolean existsByTurno_Veterinario_IdUsuarioAndTurno_FechaAndHoraInicio(
             Long idVeterinario, LocalDate fecha, LocalTime horaInicio);
+
+    List<TurnoDetalle> findByTurno_FechaAndDisponibleTrueOrderByHoraInicioAsc(LocalDate fecha);
 }

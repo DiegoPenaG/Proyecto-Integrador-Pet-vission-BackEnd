@@ -1,7 +1,8 @@
 package com.petvission.servicio.model;
 
 public enum TipoServicio {
-    PELQUERIA,
+    PELUQUERIA,
     LABORATORIO,
-    VACUNACION
+    VACUNACION,
+    PROCEDIMIENTO
 }

@@ -110,6 +110,17 @@ public class VacunacionService {
     }
 
     /*
+     * VACUNACIONES POR MASCOTA — historial plano ordenado por fecha desc
+     */
+    public List<VacunacionResponseDto> getVacunasByMascota(Long idMascota) {
+        return vacunacionRepository
+                .findByMascota_IdMascotaOrderByFechaAplicacionDesc(idMascota)
+                .stream()
+                .map(VacunacionMapper::toDto)
+                .toList();
+    }
+
+    /*
      * CATÁLOGO DE VACUNAS — filtra por especie si se indica (incluye siempre las generales)
      */
     public List<VacunaCatalogo> obtenerCatalogo(String especie) {

@@ -248,11 +248,10 @@ public class ReservaService {
         Reserva reserva = reservaRepository.findById(idReserva)
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
 
-        if (reserva.getEstado() != EstadoReserva.CONFIRMADA
-                && reserva.getEstado() != EstadoReserva.EN_ATENCION) {
+        if (reserva.getEstado() == EstadoReserva.COMPLETADA
+                || reserva.getEstado() == EstadoReserva.CANCELADA) {
             throw new IllegalStateException(
-                    "Solo se puede completar una reserva CONFIRMADA o EN_ATENCION (estado actual: "
-                            + reserva.getEstado() + ")");
+                    "No se puede completar una reserva en estado: " + reserva.getEstado());
         }
 
         reserva.setEstado(EstadoReserva.COMPLETADA);

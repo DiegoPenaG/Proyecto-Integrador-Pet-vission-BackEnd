@@ -10,6 +10,7 @@ import com.petvission.turno.dto.TurnoDetalleResponseDto;
 import com.petvission.turno.dto.HorarioPlantillaResponseDto;
 import com.petvission.turno.dto.TurnoRequestDto;
 import com.petvission.turno.dto.TurnoResponseDto;
+import com.petvission.turno.dto.SlotVetDisponibleDto;
 import com.petvission.turno.mapper.TurnoMapper;
 import com.petvission.turno.model.DiaSemana;
 import com.petvission.turno.model.HorarioPlantilla;
@@ -167,6 +168,13 @@ public class TurnoService {
         UsuarioVeterinario vet = veterinarioRepository.findById(dto.getIdVeterinario())
                 .orElseThrow(() -> new ResourceNotFoundException("Veterinario no encontrado"));
 
+        if (plantillaRepository.existsByVeterinario_IdUsuarioAndDiaSemanaAndHoraInicio(
+                dto.getIdVeterinario(), dto.getDiaSemana(), dto.getHoraInicio())) {
+            throw new IllegalStateException(
+                    "Ya existe una plantilla para ese veterinario el " + dto.getDiaSemana()
+                    + " a las " + dto.getHoraInicio());
+        }
+
         HorarioPlantilla plantilla = HorarioPlantilla.builder()
                 .veterinario(vet)
                 .diaSemana(dto.getDiaSemana())
@@ -188,6 +196,33 @@ public class TurnoService {
             throw new ResourceNotFoundException("Plantilla no encontrada");
         }
         plantillaRepository.deleteById(id);
+    }
+
+    /*
+     * CAMBIAR TURNO DE UN VETERINARIO (todas sus plantillas)
+     * Horas estándar: MANANA 08-14, TARDE 14-20, NOCHE 20-00.
+     */
+    @Transactional
+    public List<HorarioPlantillaResponseDto> cambiarTurnoVeterinario(Long idVet, TipoTurno tipoTurno) {
+        List<HorarioPlantilla> plantillas = plantillaRepository.findByVeterinario_IdUsuario(idVet);
+        if (plantillas.isEmpty()) {
+            throw new ResourceNotFoundException("No se encontraron plantillas para el veterinario");
+        }
+        LocalTime horaInicio;
+        LocalTime horaFin;
+        switch (tipoTurno) {
+            case MANANA -> { horaInicio = LocalTime.of(8,  0); horaFin = LocalTime.of(14, 0); }
+            case TARDE  -> { horaInicio = LocalTime.of(14, 0); horaFin = LocalTime.of(20, 0); }
+            case NOCHE  -> { horaInicio = LocalTime.of(20, 0); horaFin = LocalTime.of(0,  0); }
+            default     -> throw new IllegalArgumentException("Tipo de turno inválido: " + tipoTurno);
+        }
+        for (HorarioPlantilla p : plantillas) {
+            p.setHoraInicio(horaInicio);
+            p.setHoraFin(horaFin);
+        }
+        return plantillaRepository.saveAll(plantillas).stream()
+                .map(this::toPlantillaDto)
+                .toList();
     }
 
     /*
@@ -308,6 +343,44 @@ public class TurnoService {
                 })
                 .filter(dto -> !ocupados.contains(clave(dto)))
                 .filter(TurnoService::esFuturo)
+                .toList();
+    }
+
+    /*
+     * DISPONIBILIDAD MULTI-VET PARA UNA FECHA
+     * Retorna todos los slots libres de todos los vets para el día solicitado,
+     * ordenados por hora. Incluye el veterinario de cada slot.
+     */
+    public List<SlotVetDisponibleDto> obtenerDisponibilidadTodos(LocalDate fecha) {
+        Set<String> ocupados = reservaRepository
+                .findByFechaAndEstadoIn(fecha, ESTADOS_ACTIVOS)
+                .stream()
+                .map(r -> r.getVeterinario().getIdUsuario() + "|" + r.getHora())
+                .collect(Collectors.toSet());
+
+        LocalDate hoy = LocalDate.now();
+        LocalTime ahora = LocalTime.now();
+
+        return turnoDetalleRepository
+                .findByTurno_FechaAndDisponibleTrueOrderByHoraInicioAsc(fecha)
+                .stream()
+                .filter(td -> {
+                    String clave = td.getTurno().getVeterinario().getIdUsuario() + "|" + td.getHoraInicio();
+                    return !ocupados.contains(clave);
+                })
+                .filter(td -> !fecha.isEqual(hoy) || td.getHoraInicio().isAfter(ahora))
+                .map(td -> {
+                    var vet = td.getTurno().getVeterinario().getUsuario();
+                    return SlotVetDisponibleDto.builder()
+                            .idTurnoDetalle(td.getId())
+                            .horaInicio(td.getHoraInicio())
+                            .veterinario(SlotVetDisponibleDto.VetBriefDto.builder()
+                                    .idUsuario(td.getTurno().getVeterinario().getIdUsuario())
+                                    .nombres(vet.getNombres())
+                                    .apellidos(vet.getApellidos())
+                                    .build())
+                            .build();
+                })
                 .toList();
     }
 

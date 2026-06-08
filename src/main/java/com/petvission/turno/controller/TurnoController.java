@@ -2,12 +2,14 @@ package com.petvission.turno.controller;
 
 import com.petvission.shared.response.ApiResponse;
 import com.petvission.turno.dto.ActualizarDisponibilidadDto;
+import com.petvission.turno.dto.ActualizarTurnoVetDto;
 import com.petvission.turno.dto.GeneracionResponseDto;
 import com.petvission.turno.dto.HorarioPlantillaRequestDto;
 import com.petvission.turno.dto.HorarioPlantillaResponseDto;
 import com.petvission.turno.dto.TurnoDetalleResponseDto;
 import com.petvission.turno.dto.TurnoRequestDto;
 import com.petvission.turno.dto.TurnoResponseDto;
+import com.petvission.turno.dto.SlotVetDisponibleDto;
 import com.petvission.turno.service.TurnoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -138,6 +140,17 @@ public class TurnoController {
     }
 
     /*
+     * DISPONIBILIDAD TODOS LOS VETS PARA UNA FECHA
+     * GET /api/turnos/disponibilidad?fecha=YYYY-MM-DD
+     */
+    @GetMapping("/disponibilidad")
+    public ResponseEntity<ApiResponse<List<SlotVetDisponibleDto>>> obtenerDisponibilidadTodos(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(turnoService.obtenerDisponibilidadTodos(fecha)));
+    }
+
+    /*
      * DISPONIBILIDAD POR VETERINARIO — TODOS
      * Sin ?fecha → retorna todos los slots disponibles (comportamiento original).
      * Con ?fecha=YYYY-MM-DD → filtra por ese día.
@@ -220,6 +233,21 @@ public class TurnoController {
     ) {
         return ResponseEntity.ok(
                 ApiResponse.success(turnoService.actualizarDisponibilidad(id, dto))
+        );
+    }
+
+    /*
+     * CAMBIAR TURNO DE VETERINARIO — SOLO ADMIN
+     * PATCH /api/turnos/horario-plantilla/veterinario/{idVet}/turno
+     */
+    @PatchMapping("/horario-plantilla/veterinario/{idVet}/turno")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<List<HorarioPlantillaResponseDto>>> cambiarTurnoVeterinario(
+            @PathVariable Long idVet,
+            @RequestBody ActualizarTurnoVetDto dto
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.success(turnoService.cambiarTurnoVeterinario(idVet, dto.getTipoTurno()))
         );
     }
 }

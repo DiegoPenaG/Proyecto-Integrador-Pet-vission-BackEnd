@@ -38,6 +38,18 @@ public class VacunacionController {
     }
 
     /*
+     * VACUNACIONES DE UNA MASCOTA — accesible por cliente y veterinario
+     */
+    @GetMapping("/mascota/{idMascota}")
+    public ResponseEntity<ApiResponse<List<VacunacionResponseDto>>> getByMascota(
+            @PathVariable Long idMascota
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.success(vacunacionService.getVacunasByMascota(idMascota))
+        );
+    }
+
+    /*
      * CATÁLOGO DE VACUNAS — ?especie=CANINA|FELINA filtra y añade las generales; sin param devuelve todo
      */
     @GetMapping("/catalogo")

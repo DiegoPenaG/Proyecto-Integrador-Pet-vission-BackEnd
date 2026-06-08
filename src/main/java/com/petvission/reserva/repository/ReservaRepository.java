@@ -102,6 +102,14 @@ public interface ReservaRepository
     );
 
     /*
+     * RESERVAS ACTIVAS POR FECHA — todos los vets, para calcular disponibilidad multi-vet
+     */
+    List<Reserva> findByFechaAndEstadoIn(
+            LocalDate fecha,
+            List<EstadoReserva> estados
+    );
+
+    /*
      * AGENDA FUTURA DEL VETERINARIO
      */
     List<Reserva>

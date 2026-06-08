@@ -48,6 +48,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/v3/api-docs"
                         ).permitAll()
+                        // Confirmación de cita vía enlace de email (token en query param, sin JWT)
+                        .requestMatchers(HttpMethod.POST, "/api/reservas/*/confirmar").permitAll()
                         // Todo lo demás requiere autenticación
                         .anyRequest().authenticated()
                 )
@@ -66,6 +68,8 @@ public class SecurityConfig {
                 "http://localhost:5173",
                 "http://127.0.0.1:5174",
                 "http://localhost:5174",
+                "http://127.0.0.1:5175",
+                "http://localhost:5175",
                 "https://diegopenaG.github.io",
                 "https://petvission-front.vercel.app"
         ));

@@ -42,6 +42,7 @@ public class ReservaMapper {
                                 + " " +
                                 reserva.getUsuario().getApellidos()
                 )
+                .idVeterinario(reserva.getVeterinario().getIdUsuario())
                 .nombreVeterinario(
                         reserva.getVeterinario().getUsuario().getNombres()
                                 + " " +

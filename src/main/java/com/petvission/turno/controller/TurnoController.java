@@ -2,11 +2,14 @@ package com.petvission.turno.controller;
 
 import com.petvission.shared.response.ApiResponse;
 import com.petvission.turno.dto.ActualizarDisponibilidadDto;
+import com.petvission.turno.dto.ActualizarTurnoVetDto;
 import com.petvission.turno.dto.GeneracionResponseDto;
+import com.petvission.turno.dto.HorarioPlantillaRequestDto;
 import com.petvission.turno.dto.HorarioPlantillaResponseDto;
 import com.petvission.turno.dto.TurnoDetalleResponseDto;
 import com.petvission.turno.dto.TurnoRequestDto;
 import com.petvission.turno.dto.TurnoResponseDto;
+import com.petvission.turno.dto.SlotVetDisponibleDto;
 import com.petvission.turno.service.TurnoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -75,6 +78,30 @@ public class TurnoController {
     }
 
     /*
+     * CREAR PLANTILLA DE HORARIO — SOLO ADMIN
+     */
+    @PostMapping("/horario-plantilla")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<HorarioPlantillaResponseDto>> crearPlantilla(
+            @RequestBody HorarioPlantillaRequestDto dto
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.success(turnoService.crearPlantilla(dto))
+        );
+    }
+
+    /*
+     * ELIMINAR PLANTILLA DE HORARIO — SOLO ADMIN
+     * No cancela turnos ni reservas existentes.
+     */
+    @DeleteMapping("/horario-plantilla/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Void> eliminarPlantilla(@PathVariable Long id) {
+        turnoService.eliminarPlantilla(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /*
      * ACTIVAR PLANTILLA DE HORARIO — SOLO ADMIN
      */
     @PatchMapping("/horario-plantilla/{id}/activar")
@@ -110,6 +137,17 @@ public class TurnoController {
         return ResponseEntity.ok(
                 ApiResponse.success(turnoService.listarDetallesDisponibles(id))
         );
+    }
+
+    /*
+     * DISPONIBILIDAD TODOS LOS VETS PARA UNA FECHA
+     * GET /api/turnos/disponibilidad?fecha=YYYY-MM-DD
+     */
+    @GetMapping("/disponibilidad")
+    public ResponseEntity<ApiResponse<List<SlotVetDisponibleDto>>> obtenerDisponibilidadTodos(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(turnoService.obtenerDisponibilidadTodos(fecha)));
     }
 
     /*
@@ -195,6 +233,21 @@ public class TurnoController {
     ) {
         return ResponseEntity.ok(
                 ApiResponse.success(turnoService.actualizarDisponibilidad(id, dto))
+        );
+    }
+
+    /*
+     * CAMBIAR TURNO DE VETERINARIO — SOLO ADMIN
+     * PATCH /api/turnos/horario-plantilla/veterinario/{idVet}/turno
+     */
+    @PatchMapping("/horario-plantilla/veterinario/{idVet}/turno")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<List<HorarioPlantillaResponseDto>>> cambiarTurnoVeterinario(
+            @PathVariable Long idVet,
+            @RequestBody ActualizarTurnoVetDto dto
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.success(turnoService.cambiarTurnoVeterinario(idVet, dto.getTipoTurno()))
         );
     }
 }

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Recordatorio de Cita — PetVision</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f7fb;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f7fb;padding:32px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#7c3aed 0%,#a855f7 100%);padding:40px 40px 32px;text-align:center;">
+              <div style="font-size:40px;margin-bottom:8px;">🐾</div>
+              <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:700;letter-spacing:-0.5px;">PetVision</h1>
+              <p style="margin:6px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">Clínica Veterinaria</p>
+            </td>
+          </tr>
+
+          <!-- Countdown badge -->
+          <tr>
+            <td style="padding:28px 40px 0;text-align:center;">
+              <div style="display:inline-block;background:#f3e8ff;border:1px solid #d8b4fe;border-radius:50px;padding:12px 28px;">
+                <span style="font-size:24px;font-weight:800;color:#7c3aed;" th:text="${diasRestantes}">7</span>
+                <span style="font-size:14px;color:#9333ea;margin-left:4px;">días para tu cita</span>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Greeting -->
+          <tr>
+            <td style="padding:24px 40px 0;">
+              <p style="margin:0;font-size:16px;color:#374151;">Hola, <strong th:text="${nombreCliente}">Cliente</strong> 👋</p>
+              <p style="margin:12px 0 0;font-size:15px;color:#6b7280;line-height:1.6;">
+                Te recordamos que tienes una cita programada para
+                <strong th:text="${nombreMascota}">tu mascota</strong> en <strong th:text="${diasRestantes}">7</strong> días.
+                Confirma tu asistencia para que podamos preparar todo con antelación.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Appointment details card -->
+          <tr>
+            <td style="padding:24px 40px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
+                <tr>
+                  <td style="padding:16px 24px;border-bottom:1px solid #e5e7eb;background:#faf5ff;">
+                    <p style="margin:0;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#9333ea;font-weight:700;">Detalles de la Cita</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:20px 24px;">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;" width="50%">
+                          <span style="font-size:12px;color:#9ca3af;">🐕 Mascota</span><br/>
+                          <span style="font-size:15px;color:#111827;font-weight:600;" th:text="${nombreMascota}">Mascota</span><br/>
+                          <span style="font-size:12px;color:#6b7280;" th:text="${especieMascota}">especie</span>
+                        </td>
+                        <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;padding-left:16px;">
+                          <span style="font-size:12px;color:#9ca3af;">🩺 Veterinario</span><br/>
+                          <span style="font-size:15px;color:#111827;font-weight:600;" th:text="${nombreVet}">Vet</span><br/>
+                          <span th:if="${especialidadVet != null and !#strings.isEmpty(especialidadVet)}"
+                                style="font-size:12px;color:#6b7280;" th:text="${especialidadVet}">especialidad</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:8px 0;" width="50%">
+                          <span style="font-size:12px;color:#9ca3af;">📅 Fecha</span><br/>
+                          <span style="font-size:15px;color:#111827;font-weight:600;"
+                                th:text="${#temporals.format(fecha, 'dd/MM/yyyy', new java.util.Locale('es'))}">fecha</span>
+                        </td>
+                        <td style="padding:8px 0;padding-left:16px;">
+                          <span style="font-size:12px;color:#9ca3af;">⏰ Hora</span><br/>
+                          <span style="font-size:15px;color:#111827;font-weight:600;"
+                                th:text="${#temporals.format(hora, 'HH:mm')}">hora</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- CTA Button -->
+          <tr>
+            <td style="padding:0 40px 32px;text-align:center;">
+              <a th:href="${confirmUrl}" href="#"
+                 style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#ffffff;text-decoration:none;font-size:16px;font-weight:700;padding:16px 40px;border-radius:50px;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(124,58,237,0.4);">
+                ✅ Confirmar mi cita
+              </a>
+              <p style="margin:12px 0 0;font-size:12px;color:#9ca3af;">
+                Al confirmar, tu reserva queda asegurada para ese horario.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Reminder block -->
+          <tr>
+            <td style="padding:0 40px 32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;">
+                <tr>
+                  <td style="padding:20px 24px;">
+                    <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#92400e;">📋 Recuerda traer el día de la cita:</p>
+                    <ul style="margin:0;padding-left:20px;color:#78350f;font-size:13px;line-height:1.8;">
+                      <li>Carnet de vacunación de tu mascota</li>
+                      <li>Historial médico previo (si lo tienes)</li>
+                      <li>Llegar 10 minutos antes de tu turno</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:24px 40px;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#9ca3af;">
+                Si no puedes asistir, cancela o reprograma tu cita desde la app.<br/>
+                Número de reserva: <strong th:text="'#' + ${idReserva}">ID</strong>
+              </p>
+              <p style="margin:12px 0 0;font-size:11px;color:#d1d5db;">
+                © 2025 PetVision · Clínica Veterinaria<br/>
+                Recibiste este correo porque tienes una cita próxima. Para desactivar estas notificaciones, actualiza tus preferencias en la app.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

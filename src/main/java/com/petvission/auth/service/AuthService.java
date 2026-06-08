@@ -165,6 +165,15 @@ public class AuthService {
                         "Usuario no encontrado"
                 ));
 
+        // Si el admin tiene 2FA activo: no emitir JWT, pedir código TOTP
+        boolean esAdmin = usuario.getRol().getNombreRol() == Rol.NombreRol.ADMINISTRADOR;
+        if (esAdmin && Boolean.TRUE.equals(usuario.getTotpEnabled())) {
+            return AuthResponseDto.builder()
+                    .requiresTwoFactor(true)
+                    .idUsuario(usuario.getIdUsuario())
+                    .build();
+        }
+
         // Generar token JWT
         String token = jwtService.generarToken(usuario);
 

@@ -74,7 +74,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             SecurityContextHolder.clearContext();
-            log.warn("JWT filter error: {}", e.getMessage());
+            log.warn("JWT filter error: {} — {}", e.getClass().getSimpleName(), e.getMessage());
         }
 
         // 6. Continuar con la cadena de filtros

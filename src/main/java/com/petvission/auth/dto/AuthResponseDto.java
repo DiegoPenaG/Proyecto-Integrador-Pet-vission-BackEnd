@@ -21,4 +21,7 @@ public class AuthResponseDto {
     private String apellidos;
     private String correo;
     private NombreRol rol;
+
+    // Solo cuando el admin tiene 2FA activo — el JWT no se emite hasta verificar el código
+    private Boolean requiresTwoFactor;
 }

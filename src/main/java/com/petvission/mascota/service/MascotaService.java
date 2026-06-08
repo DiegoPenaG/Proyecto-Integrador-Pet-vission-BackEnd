@@ -5,6 +5,9 @@ import com.petvission.mascota.dto.MascotaResponseDto;
 import com.petvission.mascota.mapper.MascotaMapper;
 import com.petvission.mascota.model.Mascota;
 import com.petvission.mascota.repository.MascotaRepository;
+import com.petvission.reserva.model.EstadoReserva;
+import com.petvission.reserva.model.Reserva;
+import com.petvission.reserva.repository.ReservaRepository;
 import com.petvission.shared.exception.ResourceNotFoundException;
 import com.petvission.usuario.model.Rol;
 import com.petvission.usuario.model.Usuario;
@@ -14,6 +17,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,6 +39,7 @@ public class MascotaService {
     private final MascotaRepository mascotaRepository;
     private final UsuarioRepository usuarioRepository;
     private final MascotaMapper mascotaMapper;
+    private final ReservaRepository reservaRepository;
 
     /*
      * MÉTODO PARA LISTAR LAS MASCOTAS
@@ -181,6 +186,7 @@ public class MascotaService {
         mascotaRepository.save(mascota);
     }
 
+    @Transactional
     public MascotaResponseDto reasignarDueno(Long idMascota, Long idNuevoUsuario) {
         Mascota mascota = mascotaRepository.findById(idMascota)
                 .orElseThrow(() -> new ResourceNotFoundException("Mascota no encontrada"));
@@ -194,6 +200,17 @@ public class MascotaService {
         }
 
         mascota.setUsuario(nuevoUsuario);
-        return mascotaMapper.toDto(mascotaRepository.save(mascota));
+        mascotaRepository.save(mascota);
+
+        // Reasignar al nuevo dueño las reservas activas de esta mascota.
+        // COMPLETADA/CANCELADA se conservan como histórico del dueño original.
+        // historial_clinico no se toca: cuelga de mascota, no de usuario.
+        List<Reserva> reservasActivas = reservaRepository.findByMascota_IdMascotaAndEstadoIn(
+                idMascota, List.of(EstadoReserva.PENDIENTE, EstadoReserva.CONFIRMADA));
+
+        reservasActivas.forEach(r -> r.setUsuario(nuevoUsuario));
+        reservaRepository.saveAll(reservasActivas);
+
+        return mascotaMapper.toDto(mascota);
     }
 }

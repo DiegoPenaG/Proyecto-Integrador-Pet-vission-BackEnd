@@ -3,6 +3,7 @@ package com.petvission.turno;
 import com.petvission.turno.model.DiaSemana;
 import com.petvission.turno.model.HorarioPlantilla;
 import com.petvission.turno.repository.HorarioPlantillaRepository;
+import com.petvission.turno.service.TurnoService;
 import com.petvission.usuario.model.UsuarioVeterinario;
 import com.petvission.usuario.repository.UsuarioVeterinarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,39 +23,46 @@ public class PlantillaDataInitializer {
 
     private final HorarioPlantillaRepository plantillaRepo;
     private final UsuarioVeterinarioRepository vetRepo;
+    private final TurnoService turnoService;
 
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void init() {
         if (plantillaRepo.count() > 0) return;
 
-        log.info("Sembrando plantillas de horario para los 6 veterinarios...");
+        List<UsuarioVeterinario> vets = vetRepo.findAll();
+        if (vets.isEmpty()) {
+            log.warn("PlantillaDataInitializer: no hay veterinarios — se omite el seed");
+            return;
+        }
+
+        log.info("Sembrando plantillas de horario para {} veterinarios...", vets.size());
+
+        record Turno(LocalTime inicio, LocalTime fin) {}
+        List<Turno> turnos = List.of(
+                new Turno(LocalTime.of(8,  0), LocalTime.of(14, 0)),
+                new Turno(LocalTime.of(14, 0), LocalTime.of(20, 0)),
+                new Turno(LocalTime.of(20, 0), LocalTime.of(2,  0))
+        );
 
         DiaSemana[] dias = DiaSemana.values();
 
-        insertar(List.of(35L, 36L), dias, LocalTime.of(8, 0),  LocalTime.of(14, 0));
-        insertar(List.of(37L, 38L), dias, LocalTime.of(14, 0), LocalTime.of(20, 0));
-        insertar(List.of(39L, 40L), dias, LocalTime.of(20, 0), LocalTime.of(2, 0));
-
-        log.info("Plantillas sembradas: {} registros", plantillaRepo.count());
-    }
-
-    private void insertar(List<Long> vetIds, DiaSemana[] dias, LocalTime inicio, LocalTime fin) {
-        for (Long vetId : vetIds) {
-            UsuarioVeterinario vet = vetRepo.findById(vetId).orElse(null);
-            if (vet == null) {
-                log.warn("Veterinario con id {} no encontrado — se omite", vetId);
-                continue;
-            }
+        for (int i = 0; i < vets.size(); i++) {
+            Turno t = turnos.get(i % turnos.size());
             for (DiaSemana dia : dias) {
                 plantillaRepo.save(HorarioPlantilla.builder()
-                        .veterinario(vet)
+                        .veterinario(vets.get(i))
                         .diaSemana(dia)
-                        .horaInicio(inicio)
-                        .horaFin(fin)
+                        .horaInicio(t.inicio())
+                        .horaFin(t.fin())
                         .activo(true)
                         .build());
             }
         }
+
+        log.info("Plantillas sembradas: {} registros", plantillaRepo.count());
+
+        var resultado = turnoService.generarTurnos(60);
+        log.info("Turnos generados al arrancar: {} slots", resultado.getTurnosGenerados());
     }
 }

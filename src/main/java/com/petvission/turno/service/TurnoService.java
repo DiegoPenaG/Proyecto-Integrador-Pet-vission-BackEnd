@@ -168,6 +168,13 @@ public class TurnoService {
         UsuarioVeterinario vet = veterinarioRepository.findById(dto.getIdVeterinario())
                 .orElseThrow(() -> new ResourceNotFoundException("Veterinario no encontrado"));
 
+        if (plantillaRepository.existsByVeterinario_IdUsuarioAndDiaSemanaAndHoraInicio(
+                dto.getIdVeterinario(), dto.getDiaSemana(), dto.getHoraInicio())) {
+            throw new IllegalStateException(
+                    "Ya existe una plantilla para ese veterinario el " + dto.getDiaSemana()
+                    + " a las " + dto.getHoraInicio());
+        }
+
         HorarioPlantilla plantilla = HorarioPlantilla.builder()
                 .veterinario(vet)
                 .diaSemana(dto.getDiaSemana())

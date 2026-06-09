@@ -351,6 +351,7 @@ public class TurnoService {
      * Retorna todos los slots libres de todos los vets para el día solicitado,
      * ordenados por hora. Incluye el veterinario de cada slot.
      */
+    @Transactional(readOnly = true)
     public List<SlotVetDisponibleDto> obtenerDisponibilidadTodos(LocalDate fecha) {
         Set<String> ocupados = reservaRepository
                 .findByFechaAndEstadoIn(fecha, ESTADOS_ACTIVOS)

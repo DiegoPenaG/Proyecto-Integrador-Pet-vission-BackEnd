@@ -62,16 +62,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(List.of(
-                "http://127.0.0.1:3000",
-                "http://localhost:3000",
-                "http://127.0.0.1:5173",
-                "http://localhost:5173",
-                "http://127.0.0.1:5174",
-                "http://localhost:5174",
-                "http://127.0.0.1:5175",
-                "http://localhost:5175",
-                "https://diegopenaG.github.io",
-                "https://petvission-front.vercel.app"
+                "https://petvission.vercel.app"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));

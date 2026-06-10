@@ -174,10 +174,11 @@ public class ReservaService {
 
         // ADMIN: puede cancelar cualquier estado activo
         // VET asignado: puede cancelar PENDIENTE, CONFIRMADA y EN_ATENCION (no-show)
-        // CLIENTE dueño: solo puede cancelar PENDIENTE
+        // CLIENTE dueño: puede cancelar PENDIENTE o CONFIRMADA (no EN_ATENCION)
         boolean autorizado = esAdmin(auth)
                 || esVetAsignado(reserva, auth)
-                || (estado == EstadoReserva.PENDIENTE && esClienteDueno(reserva, auth));
+                || ((estado == EstadoReserva.PENDIENTE || estado == EstadoReserva.CONFIRMADA)
+                        && esClienteDueno(reserva, auth));
 
         if (!autorizado) {
             throw new UnauthorizedException("No tiene permiso para cancelar esta reserva");

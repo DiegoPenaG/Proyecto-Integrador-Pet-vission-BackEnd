@@ -3,6 +3,7 @@
 package com.petvission.usuario.controller;
 
 import com.petvission.shared.response.ApiResponse;
+import com.petvission.usuario.dto.CambiarPasswordDto;
 import com.petvission.usuario.dto.UsuarioRequestDto;
 import com.petvission.usuario.dto.UsuarioResponseDto;
 import com.petvission.usuario.service.UsuarioService;
@@ -72,6 +73,17 @@ public class UsuarioController {
     public ResponseEntity<ApiResponse<Void>> desactivar(
             @PathVariable Long id) {
         usuarioService.desactivar(id);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    // PATCH /api/usuarios/{id}/cambiar-password
+    // El propio usuario puede cambiar su contraseña
+    @PatchMapping("/{id}/cambiar-password")
+    @PreAuthorize("hasRole('ADMINISTRADOR') or #id == authentication.principal.idUsuario")
+    public ResponseEntity<ApiResponse<Void>> cambiarPassword(
+            @PathVariable Long id,
+            @Valid @RequestBody CambiarPasswordDto dto) {
+        usuarioService.cambiarPassword(id, dto);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

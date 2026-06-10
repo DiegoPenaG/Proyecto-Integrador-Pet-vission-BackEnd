@@ -1,6 +1,7 @@
 package com.petvission.usuario.service;
 
 import com.petvission.shared.exception.ResourceNotFoundException;
+import com.petvission.usuario.dto.CambiarPasswordDto;
 import com.petvission.usuario.dto.CreateVeterinarioDto;
 import com.petvission.usuario.dto.UsuarioRequestDto;
 import com.petvission.usuario.dto.UsuarioResponseDto;
@@ -100,6 +101,16 @@ public class UsuarioService {
     public void desactivar(Long id) {
         Usuario usuario = buscarOFallar(id);
         usuario.setEstado(false);
+        usuarioRepository.save(usuario);
+    }
+
+    @Transactional
+    public void cambiarPassword(Long id, CambiarPasswordDto dto) {
+        Usuario usuario = buscarOFallar(id);
+        if (!passwordEncoder.matches(dto.getPasswordActual(), usuario.getContrasena())) {
+            throw new IllegalArgumentException("La contraseña actual es incorrecta");
+        }
+        usuario.setContrasena(passwordEncoder.encode(dto.getPasswordNueva()));
         usuarioRepository.save(usuario);
     }
 

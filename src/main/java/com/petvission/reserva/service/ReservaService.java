@@ -148,12 +148,14 @@ public class ReservaService {
 
         Reserva saved = reservaRepository.save(reserva);
 
+        String confirmationToken = UUID.randomUUID().toString();
         recordatorioRepository.save(Recordatorio.builder()
                 .reserva(saved)
-                .confirmationToken(UUID.randomUUID().toString())
+                .confirmationToken(confirmationToken)
                 .build());
 
         emailService.enviarConfirmacionReserva(saved);
+        emailService.enviarRecordatorio7Dias(saved, confirmationToken);
 
         return reservaMapper.toDto(saved);
     }

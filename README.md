@@ -1,3 +1,5 @@
+![EAM TEAM LOGO](https://github.com/DiegoPenaG/Proyecto-Integrador-Pet-vission/blob/main/Gemini_Generated_Image_hosw91hosw91hosw.png?raw=true)
+
 # 🐾 PetVission — Backend
 
 API REST del sistema PetVission, desarrollada con Java 21 + Spring Boot.

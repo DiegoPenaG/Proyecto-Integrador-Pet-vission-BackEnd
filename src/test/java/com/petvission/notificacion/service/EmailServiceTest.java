@@ -9,7 +9,8 @@ import com.petvission.notificacion.repository.UsuarioNotificacionPrefRepository;
 import com.petvission.reserva.model.Reserva;
 import com.petvission.usuario.model.Usuario;
 import com.petvission.usuario.model.UsuarioVeterinario;
-import jakarta.mail.internet.MimeMessage;
+import com.sendgrid.Response;
+import com.sendgrid.SendGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,11 +18,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Optional;
@@ -33,7 +34,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class EmailServiceTest {
 
-    @Mock JavaMailSender mailSender;
+    @Mock SendGrid sendGrid;
     @Mock SpringTemplateEngine templateEngine;
     @Mock UsuarioNotificacionPrefRepository prefRepository;
     @Mock CitaNotificacionLogRepository logRepository;
@@ -77,19 +78,24 @@ class EmailServiceTest {
                 .build();
     }
 
-    @Test
-    void enviarConfirmacion_cuandoEmailHabilitado_invocaMailSender() throws Exception {
-        Reserva reserva = buildReserva(1L);
-        MimeMessage mimeMock = mock(MimeMessage.class);
+    private Response okResponse() {
+        Response r = new Response();
+        r.setStatusCode(202);
+        return r;
+    }
 
-        when(prefRepository.findByUsuario_IdUsuario(1L)).thenReturn(Optional.empty()); // default true
+    @Test
+    void enviarConfirmacion_cuandoEmailHabilitado_invocaSendGrid() throws Exception {
+        Reserva reserva = buildReserva(1L);
+
+        when(prefRepository.findByUsuario_IdUsuario(1L)).thenReturn(Optional.empty());
         when(templateEngine.process(eq("email/email-confirmacion"), any(Context.class)))
                 .thenReturn("<html>confirmacion</html>");
-        when(mailSender.createMimeMessage()).thenReturn(mimeMock);
+        when(sendGrid.api(any())).thenReturn(okResponse());
 
         emailService.enviarConfirmacionReserva(reserva);
 
-        verify(mailSender).send(mimeMock);
+        verify(sendGrid).api(any());
     }
 
     @Test
@@ -103,7 +109,7 @@ class EmailServiceTest {
 
         emailService.enviarConfirmacionReserva(reserva);
 
-        verifyNoInteractions(mailSender);
+        verifyNoInteractions(sendGrid);
         verifyNoInteractions(templateEngine);
     }
 
@@ -119,18 +125,17 @@ class EmailServiceTest {
 
         emailService.enviarRecordatorio7Dias(reserva, "token-xyz");
 
-        verifyNoInteractions(mailSender);
+        verifyNoInteractions(sendGrid);
     }
 
     @Test
     void registrarLog_estadoEnviado_cuandoEnvioExitoso() throws Exception {
         Reserva reserva = buildReserva(4L);
-        MimeMessage mimeMock = mock(MimeMessage.class);
 
         when(prefRepository.findByUsuario_IdUsuario(1L)).thenReturn(Optional.empty());
         when(templateEngine.process(eq("email/email-confirmacion"), any(Context.class)))
                 .thenReturn("<html>ok</html>");
-        when(mailSender.createMimeMessage()).thenReturn(mimeMock);
+        when(sendGrid.api(any())).thenReturn(okResponse());
 
         emailService.enviarConfirmacionReserva(reserva);
 
@@ -143,15 +148,11 @@ class EmailServiceTest {
     @Test
     void registrarLog_estadoError_cuandoEnvioFalla() throws Exception {
         Reserva reserva = buildReserva(5L);
-        MimeMessage mimeMock = mock(MimeMessage.class);
 
         when(prefRepository.findByUsuario_IdUsuario(1L)).thenReturn(Optional.empty());
         when(templateEngine.process(eq("email/email-confirmacion"), any(Context.class)))
                 .thenReturn("<html>ok</html>");
-        when(mailSender.createMimeMessage()).thenReturn(mimeMock);
-        // MimeMessageHelper.setText() fallará porque mimeMock no es un MimeMessage real
-        // Simulamos el fallo directamente en send()
-        doThrow(new RuntimeException("SMTP down")).when(mailSender).send(any(MimeMessage.class));
+        when(sendGrid.api(any())).thenThrow(new IOException("SendGrid down"));
 
         emailService.enviarConfirmacionReserva(reserva);
 
@@ -163,10 +164,9 @@ class EmailServiceTest {
     @Test
     void enviarRecordatorio_incluyeTokenEnUrl() throws Exception {
         Reserva reserva = buildReserva(6L);
-        MimeMessage mimeMock = mock(MimeMessage.class);
 
         when(prefRepository.findByUsuario_IdUsuario(1L)).thenReturn(Optional.empty());
-        when(mailSender.createMimeMessage()).thenReturn(mimeMock);
+        when(sendGrid.api(any())).thenReturn(okResponse());
 
         ArgumentCaptor<Context> ctxCaptor = ArgumentCaptor.forClass(Context.class);
         when(templateEngine.process(eq("email/email-recordatorio"), ctxCaptor.capture()))

@@ -6,17 +6,22 @@ import com.petvission.notificacion.model.EstadoNotificacion;
 import com.petvission.notificacion.repository.CitaNotificacionLogRepository;
 import com.petvission.notificacion.repository.UsuarioNotificacionPrefRepository;
 import com.petvission.reserva.model.Reserva;
-import jakarta.mail.internet.MimeMessage;
+import com.sendgrid.Method;
+import com.sendgrid.Request;
+import com.sendgrid.Response;
+import com.sendgrid.SendGrid;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 
 @Slf4j
@@ -24,10 +29,10 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
     private final SpringTemplateEngine templateEngine;
     private final UsuarioNotificacionPrefRepository prefRepository;
     private final CitaNotificacionLogRepository logRepository;
+    private final SendGrid sendGrid;
 
     @Value("${app.mail.from}")
     private String mailFrom;
@@ -109,20 +114,30 @@ public class EmailService {
                 .orElse(true);
     }
 
-    /** Retorna null si el envío fue exitoso, o el mensaje de error en caso de fallo. */
     private String enviarHtml(String to, String subject, String htmlBody) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(mailFrom);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);
-            mailSender.send(message);
-            log.info("Email enviado a {}: {}", to, subject);
-            return null;
-        } catch (Exception e) {
-            // Captura MessagingException (setup MIME) y MailException (envío SMTP)
+            Mail mail = new Mail(
+                    new Email(mailFrom),
+                    subject,
+                    new Email(to),
+                    new Content("text/html", htmlBody)
+            );
+
+            Request request = new Request();
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            Response response = sendGrid.api(request);
+
+            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                log.info("Email enviado a {}: {} (status {})", to, subject, response.getStatusCode());
+                return null;
+            } else {
+                String error = "SendGrid " + response.getStatusCode() + ": " + response.getBody();
+                log.error("Error al enviar email a {}: {}", to, error);
+                return error;
+            }
+        } catch (IOException e) {
             log.error("Error al enviar email a {}: {}", to, e.getMessage());
             return e.getMessage();
         }

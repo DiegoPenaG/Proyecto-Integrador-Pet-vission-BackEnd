@@ -44,8 +44,12 @@ public class EmailService {
 
     @Async
     public void enviarConfirmacionReserva(Reserva reserva, String confirmationToken) {
-        if (!preferenciaHabilitada(reserva.getUsuario().getIdUsuario(), "confirmacion")) return;
+        log.info("Async confirmación iniciada para reserva {}", reserva.getIdReserva());
         try {
+            if (!preferenciaHabilitada(reserva.getUsuario().getIdUsuario(), "confirmacion")) {
+                log.info("Confirmación bloqueada por preferencias para reserva {}", reserva.getIdReserva());
+                return;
+            }
             String confirmUrl = frontendUrl + "/confirmar-cita/" + reserva.getIdReserva()
                     + "?token=" + confirmationToken;
             long diasRestantes = ChronoUnit.DAYS.between(LocalDate.now(), reserva.getFecha());
@@ -62,14 +66,18 @@ public class EmailService {
             );
             registrarLog(reserva, error);
         } catch (Exception e) {
-            log.error("Error al procesar/enviar confirmación de reserva {}: {}", reserva.getIdReserva(), e.getMessage());
+            log.error("Error al procesar/enviar confirmación de reserva {}: {}", reserva.getIdReserva(), e.getMessage(), e);
         }
     }
 
     @Async
     public void enviarRecordatorio7Dias(Reserva reserva) {
-        if (!preferenciaHabilitada(reserva.getUsuario().getIdUsuario(), "recordatorio7dias")) return;
+        log.info("Async recordatorio iniciado para reserva {}", reserva.getIdReserva());
         try {
+            if (!preferenciaHabilitada(reserva.getUsuario().getIdUsuario(), "recordatorio7dias")) {
+                log.info("Recordatorio bloqueado por preferencias para reserva {}", reserva.getIdReserva());
+                return;
+            }
             Context ctx = buildContextBase(reserva);
             String html = templateEngine.process("email/email-confirmacion", ctx);
             String error = enviarHtml(
@@ -79,7 +87,7 @@ public class EmailService {
             );
             registrarLog(reserva, error);
         } catch (Exception e) {
-            log.error("Error al procesar/enviar recordatorio de reserva {}: {}", reserva.getIdReserva(), e.getMessage());
+            log.error("Error al procesar/enviar recordatorio de reserva {}: {}", reserva.getIdReserva(), e.getMessage(), e);
         }
     }
 

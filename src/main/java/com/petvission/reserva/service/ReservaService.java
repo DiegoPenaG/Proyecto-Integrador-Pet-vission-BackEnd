@@ -154,6 +154,9 @@ public class ReservaService {
                 .confirmationToken(confirmationToken)
                 .build());
 
+        // Fuerza la inicialización del proxy lazy antes de salir de la transacción
+        saved.getVeterinario().getUsuario().getIdUsuario();
+
         emailService.enviarConfirmacionReserva(saved);
         emailService.enviarRecordatorio7Dias(saved, confirmationToken);
 

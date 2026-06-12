@@ -154,11 +154,11 @@ public class ReservaService {
                 .confirmationToken(confirmationToken)
                 .build());
 
-        // Fuerza la inicialización del proxy lazy antes de salir de la transacción
-        saved.getVeterinario().getUsuario().getIdUsuario();
+        // Extraer datos mientras la sesión JPA está abierta (dentro de @Transactional).
+        EmailService.EmailReservaData emailData = EmailService.EmailReservaData.from(saved);
 
-        emailService.enviarConfirmacionReserva(saved, confirmationToken);
-        emailService.enviarRecordatorio7Dias(saved);
+        emailService.enviarConfirmacionReserva(emailData, confirmationToken);
+        emailService.enviarRecordatorio7Dias(emailData);
 
         return reservaMapper.toDto(saved);
     }

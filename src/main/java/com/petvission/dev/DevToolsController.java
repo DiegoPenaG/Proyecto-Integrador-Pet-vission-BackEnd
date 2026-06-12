@@ -5,6 +5,7 @@ import com.petvission.recordatorio.model.Recordatorio;
 import com.petvission.recordatorio.repository.RecordatorioRepository;
 import com.petvission.reserva.model.Reserva;
 import com.petvission.reserva.repository.ReservaRepository;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import com.petvission.shared.exception.ResourceNotFoundException;
 import com.petvission.shared.response.ApiResponse;
@@ -30,6 +31,7 @@ public class DevToolsController {
      * Solo admin. Remover antes de pasar a producción real.
      */
     @PostMapping("/test-email/{idReserva}")
+    @Transactional
     public ResponseEntity<ApiResponse<String>> testEmail(@PathVariable Long idReserva) {
         Reserva reserva = reservaRepository.findById(idReserva)
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada: " + idReserva));
@@ -47,7 +49,8 @@ public class DevToolsController {
         rec.setFechaConfirmacion(null);
         recordatorioRepository.save(rec);
 
-        emailService.enviarRecordatorio7Dias(reserva);
+        // Extraer datos dentro de la transacción para no pasar entidades LAZY al hilo @Async
+        emailService.enviarRecordatorio7Dias(EmailService.EmailReservaData.from(reserva));
 
         String destinatario = reserva.getUsuario().getCorreo();
         String linkGenerado  = "/confirmar-cita/" + idReserva + "?token=" + token;

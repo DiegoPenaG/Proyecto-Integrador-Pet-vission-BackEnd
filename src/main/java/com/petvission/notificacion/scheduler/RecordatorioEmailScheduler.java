@@ -1,6 +1,7 @@
 package com.petvission.notificacion.scheduler;
 
 import com.petvission.notificacion.service.EmailService;
+import com.petvission.notificacion.service.EmailService.EmailReservaData;
 import com.petvission.recordatorio.model.Recordatorio;
 import com.petvission.recordatorio.repository.RecordatorioRepository;
 import com.petvission.reserva.model.EstadoReserva;
@@ -39,7 +40,7 @@ public class RecordatorioEmailScheduler {
                 if (r.getConfirmationToken() == null) {
                     r.setConfirmationToken(UUID.randomUUID().toString());
                 }
-                emailService.enviarRecordatorio7Dias(r.getReserva());
+                emailService.enviarRecordatorio7Dias(EmailService.EmailReservaData.from(r.getReserva()));
                 r.setEnviado(true);
                 r.setFechaEnvio(LocalDateTime.now());
                 recordatorioRepository.save(r);

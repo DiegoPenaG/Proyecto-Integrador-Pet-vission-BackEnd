@@ -16,9 +16,9 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
+    host: ${MAIL_HOST:smtp.sendgrid.net}
     port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:}
+    username: ${MAIL_USERNAME:apikey}
     password: ${MAIL_PASSWORD:}
     properties:
       mail:
@@ -30,8 +30,6 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
-          ssl:
-            trust: smtp.gmail.com
 
 jwt:
   secret: ${JWT_SECRET:clave-secreta-local-desarrollo-32b}

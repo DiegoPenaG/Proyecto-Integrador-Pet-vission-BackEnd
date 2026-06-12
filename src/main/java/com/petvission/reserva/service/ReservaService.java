@@ -157,8 +157,8 @@ public class ReservaService {
         // Fuerza la inicialización del proxy lazy antes de salir de la transacción
         saved.getVeterinario().getUsuario().getIdUsuario();
 
-        emailService.enviarConfirmacionReserva(saved);
-        emailService.enviarRecordatorio7Dias(saved, confirmationToken);
+        emailService.enviarConfirmacionReserva(saved, confirmationToken);
+        emailService.enviarRecordatorio7Dias(saved);
 
         return reservaMapper.toDto(saved);
     }

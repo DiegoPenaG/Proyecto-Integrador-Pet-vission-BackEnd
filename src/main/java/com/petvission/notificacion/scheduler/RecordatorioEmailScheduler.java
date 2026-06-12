@@ -39,7 +39,7 @@ public class RecordatorioEmailScheduler {
                 if (r.getConfirmationToken() == null) {
                     r.setConfirmationToken(UUID.randomUUID().toString());
                 }
-                emailService.enviarRecordatorio7Dias(r.getReserva(), r.getConfirmationToken());
+                emailService.enviarRecordatorio7Dias(r.getReserva());
                 r.setEnviado(true);
                 r.setFechaEnvio(LocalDateTime.now());
                 recordatorioRepository.save(r);

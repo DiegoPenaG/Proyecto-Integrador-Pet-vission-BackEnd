@@ -54,7 +54,7 @@ class RecordatorioEmailSchedulerTest {
 
         scheduler.enviarRecordatorios7Dias();
 
-        verify(emailService).enviarRecordatorio7Dias(reserva, "token-test-123");
+        verify(emailService).enviarRecordatorio7Dias(reserva);
         ArgumentCaptor<Recordatorio> captor = ArgumentCaptor.forClass(Recordatorio.class);
         verify(recordatorioRepository).save(captor.capture());
         assertThat(captor.getValue().getEnviado()).isTrue();
@@ -109,11 +109,11 @@ class RecordatorioEmailSchedulerTest {
 
         when(recordatorioRepository.findPendientesParaFecha(any(), anyList()))
                 .thenReturn(List.of(rec1, rec2));
-        doThrow(new RuntimeException("SMTP error")).when(emailService).enviarRecordatorio7Dias(r1, "t1");
+        doThrow(new RuntimeException("SMTP error")).when(emailService).enviarRecordatorio7Dias(r1);
 
         scheduler.enviarRecordatorios7Dias();
 
         // El segundo debe haberse enviado aunque el primero falló
-        verify(emailService).enviarRecordatorio7Dias(r2, "t2");
+        verify(emailService).enviarRecordatorio7Dias(r2);
     }
 }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Confirmación de Cita — PetVision</title>
+  <title>Recordatorio de Cita — PetVision</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f4f7fb;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
 
@@ -25,7 +25,7 @@
           <tr>
             <td style="padding:0 40px;">
               <div style="background:#e8f5e9;border-left:4px solid #43a047;border-radius:0 8px 8px 0;padding:14px 20px;margin-top:-1px;">
-                <p style="margin:0;color:#2e7d32;font-size:14px;font-weight:600;">✅ ¡Tu cita ha sido agendada exitosamente!</p>
+                <p style="margin:0;color:#2e7d32;font-size:14px;font-weight:600;">📅 Recordatorio: tienes una cita próximamente</p>
               </div>
             </td>
           </tr>
@@ -35,8 +35,8 @@
             <td style="padding:32px 40px 0;">
               <p style="margin:0;font-size:16px;color:#374151;">Hola, <strong th:text="${nombreCliente}">Cliente</strong>,</p>
               <p style="margin:12px 0 0;font-size:15px;color:#6b7280;line-height:1.6;">
-                Te confirmamos que tu cita para <strong th:text="${nombreMascota}">mascota</strong>
-                ha quedado registrada. A continuación encontrarás todos los detalles:
+                Te recordamos que tienes una cita programada para <strong th:text="${nombreMascota}">mascota</strong>.
+                A continuación encontrarás todos los detalles:
               </p>
             </td>
           </tr>

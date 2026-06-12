@@ -47,7 +47,7 @@ public class DevToolsController {
         rec.setFechaConfirmacion(null);
         recordatorioRepository.save(rec);
 
-        emailService.enviarRecordatorio7Dias(reserva, token);
+        emailService.enviarRecordatorio7Dias(reserva);
 
         String destinatario = reserva.getUsuario().getCorreo();
         String linkGenerado  = "/confirmar-cita/" + idReserva + "?token=" + token;

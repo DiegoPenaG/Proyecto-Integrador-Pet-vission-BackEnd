@@ -22,7 +22,9 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Slf4j
 @Service
@@ -41,11 +43,18 @@ public class EmailService {
     private String frontendUrl;
 
     @Async
-    public void enviarConfirmacionReserva(Reserva reserva) {
+    public void enviarConfirmacionReserva(Reserva reserva, String confirmationToken) {
         if (!preferenciaHabilitada(reserva.getUsuario().getIdUsuario(), "confirmacion")) return;
         try {
+            String confirmUrl = frontendUrl + "/confirmar-cita/" + reserva.getIdReserva()
+                    + "?token=" + confirmationToken;
+            long diasRestantes = ChronoUnit.DAYS.between(LocalDate.now(), reserva.getFecha());
+
             Context ctx = buildContextBase(reserva);
-            String html = templateEngine.process("email/email-confirmacion", ctx);
+            ctx.setVariable("confirmUrl", confirmUrl);
+            ctx.setVariable("diasRestantes", diasRestantes);
+
+            String html = templateEngine.process("email/email-recordatorio", ctx);
             String error = enviarHtml(
                     reserva.getUsuario().getCorreo(),
                     "✅ Confirmación de cita — PetVision",
@@ -58,23 +67,20 @@ public class EmailService {
     }
 
     @Async
-    public void enviarRecordatorio7Dias(Reserva reserva, String confirmationToken) {
+    public void enviarRecordatorio7Dias(Reserva reserva) {
         if (!preferenciaHabilitada(reserva.getUsuario().getIdUsuario(), "recordatorio7dias")) return;
-
-        String confirmUrl = frontendUrl + "/confirmar-cita/" + reserva.getIdReserva()
-                + "?token=" + confirmationToken;
-
-        Context ctx = buildContextBase(reserva);
-        ctx.setVariable("confirmUrl", confirmUrl);
-        ctx.setVariable("diasRestantes", 7);
-
-        String html = templateEngine.process("email/email-recordatorio", ctx);
-        String error = enviarHtml(
-                reserva.getUsuario().getCorreo(),
-                "🐾 Recordatorio: Tu cita es en 7 días — PetVision",
-                html
-        );
-        registrarLog(reserva, error);
+        try {
+            Context ctx = buildContextBase(reserva);
+            String html = templateEngine.process("email/email-confirmacion", ctx);
+            String error = enviarHtml(
+                    reserva.getUsuario().getCorreo(),
+                    "🐾 Recordatorio: tu cita es en 7 días — PetVision",
+                    html
+            );
+            registrarLog(reserva, error);
+        } catch (Exception e) {
+            log.error("Error al procesar/enviar recordatorio de reserva {}: {}", reserva.getIdReserva(), e.getMessage());
+        }
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────

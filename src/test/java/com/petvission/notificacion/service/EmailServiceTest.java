@@ -7,6 +7,7 @@ import com.petvission.notificacion.model.UsuarioNotificacionPref;
 import com.petvission.notificacion.repository.CitaNotificacionLogRepository;
 import com.petvission.notificacion.repository.UsuarioNotificacionPrefRepository;
 import com.petvission.reserva.model.Reserva;
+import com.petvission.reserva.repository.ReservaRepository;
 import com.petvission.usuario.model.Usuario;
 import com.petvission.usuario.model.UsuarioVeterinario;
 import com.sendgrid.Response;
@@ -38,6 +39,7 @@ class EmailServiceTest {
     @Mock SpringTemplateEngine templateEngine;
     @Mock UsuarioNotificacionPrefRepository prefRepository;
     @Mock CitaNotificacionLogRepository logRepository;
+    @Mock ReservaRepository reservaRepository;
 
     @InjectMocks
     EmailService emailService;
@@ -46,6 +48,8 @@ class EmailServiceTest {
     void setUp() {
         ReflectionTestUtils.setField(emailService, "mailFrom", "noreply@petvision.com");
         ReflectionTestUtils.setField(emailService, "frontendUrl", "http://localhost:5173");
+        // Usado por registrarLog — lenient para no fallar en tests que no invocan registrarLog
+        lenient().when(reservaRepository.getReferenceById(anyLong())).thenReturn(new Reserva());
     }
 
     private Reserva buildReserva(Long id) {
@@ -78,6 +82,10 @@ class EmailServiceTest {
                 .build();
     }
 
+    private EmailService.EmailReservaData buildData(Long id) {
+        return EmailService.EmailReservaData.from(buildReserva(id));
+    }
+
     private Response okResponse() {
         Response r = new Response();
         r.setStatusCode(202);
@@ -86,28 +94,24 @@ class EmailServiceTest {
 
     @Test
     void enviarConfirmacion_cuandoEmailHabilitado_invocaSendGrid() throws Exception {
-        Reserva reserva = buildReserva(1L);
-
         when(prefRepository.findByUsuario_IdUsuario(1L)).thenReturn(Optional.empty());
         when(templateEngine.process(eq("email/email-recordatorio"), any(Context.class)))
                 .thenReturn("<html>confirmacion</html>");
         when(sendGrid.api(any())).thenReturn(okResponse());
 
-        emailService.enviarConfirmacionReserva(reserva, "token-abc");
+        emailService.enviarConfirmacionReserva(buildData(1L), "token-abc");
 
         verify(sendGrid).api(any());
     }
 
     @Test
     void noEnviarEmail_cuandoEmailHabilitadoEsFalse() {
-        Reserva reserva = buildReserva(2L);
-
         UsuarioNotificacionPref pref = UsuarioNotificacionPref.builder()
                 .emailHabilitado(false)
                 .build();
         when(prefRepository.findByUsuario_IdUsuario(1L)).thenReturn(Optional.of(pref));
 
-        emailService.enviarConfirmacionReserva(reserva, "token-abc");
+        emailService.enviarConfirmacionReserva(buildData(2L), "token-abc");
 
         verifyNoInteractions(sendGrid);
         verifyNoInteractions(templateEngine);
@@ -115,29 +119,25 @@ class EmailServiceTest {
 
     @Test
     void noEnviarRecordatorio_cuandoRecordatorio7DiasEsFalse() {
-        Reserva reserva = buildReserva(3L);
-
         UsuarioNotificacionPref pref = UsuarioNotificacionPref.builder()
                 .emailHabilitado(true)
                 .recordatorio7dias(false)
                 .build();
         when(prefRepository.findByUsuario_IdUsuario(1L)).thenReturn(Optional.of(pref));
 
-        emailService.enviarRecordatorio7Dias(reserva);
+        emailService.enviarRecordatorio7Dias(buildData(3L));
 
         verifyNoInteractions(sendGrid);
     }
 
     @Test
     void registrarLog_estadoEnviado_cuandoEnvioExitoso() throws Exception {
-        Reserva reserva = buildReserva(4L);
-
         when(prefRepository.findByUsuario_IdUsuario(1L)).thenReturn(Optional.empty());
         when(templateEngine.process(eq("email/email-recordatorio"), any(Context.class)))
                 .thenReturn("<html>ok</html>");
         when(sendGrid.api(any())).thenReturn(okResponse());
 
-        emailService.enviarConfirmacionReserva(reserva, "token-abc");
+        emailService.enviarConfirmacionReserva(buildData(4L), "token-abc");
 
         ArgumentCaptor<CitaNotificacionLog> logCaptor = ArgumentCaptor.forClass(CitaNotificacionLog.class);
         verify(logRepository).save(logCaptor.capture());
@@ -147,14 +147,12 @@ class EmailServiceTest {
 
     @Test
     void registrarLog_estadoError_cuandoEnvioFalla() throws Exception {
-        Reserva reserva = buildReserva(5L);
-
         when(prefRepository.findByUsuario_IdUsuario(1L)).thenReturn(Optional.empty());
         when(templateEngine.process(eq("email/email-recordatorio"), any(Context.class)))
                 .thenReturn("<html>ok</html>");
         when(sendGrid.api(any())).thenThrow(new IOException("SendGrid down"));
 
-        emailService.enviarConfirmacionReserva(reserva, "token-abc");
+        emailService.enviarConfirmacionReserva(buildData(5L), "token-abc");
 
         ArgumentCaptor<CitaNotificacionLog> logCaptor = ArgumentCaptor.forClass(CitaNotificacionLog.class);
         verify(logRepository).save(logCaptor.capture());
@@ -163,14 +161,12 @@ class EmailServiceTest {
 
     @Test
     void enviarRecordatorio_usaPlantillaVerde() throws Exception {
-        Reserva reserva = buildReserva(6L);
-
         when(prefRepository.findByUsuario_IdUsuario(1L)).thenReturn(Optional.empty());
         when(sendGrid.api(any())).thenReturn(okResponse());
         when(templateEngine.process(eq("email/email-confirmacion"), any(Context.class)))
                 .thenReturn("<html>recordatorio</html>");
 
-        emailService.enviarRecordatorio7Dias(reserva);
+        emailService.enviarRecordatorio7Dias(buildData(6L));
 
         verify(templateEngine).process(eq("email/email-confirmacion"), any());
         verify(sendGrid).api(any());
@@ -178,8 +174,6 @@ class EmailServiceTest {
 
     @Test
     void enviarConfirmacion_incluyeTokenEnUrl() throws Exception {
-        Reserva reserva = buildReserva(7L);
-
         when(prefRepository.findByUsuario_IdUsuario(1L)).thenReturn(Optional.empty());
         when(sendGrid.api(any())).thenReturn(okResponse());
 
@@ -187,7 +181,7 @@ class EmailServiceTest {
         when(templateEngine.process(eq("email/email-recordatorio"), ctxCaptor.capture()))
                 .thenReturn("<html>confirmacion</html>");
 
-        emailService.enviarConfirmacionReserva(reserva, "mi-token-secreto");
+        emailService.enviarConfirmacionReserva(buildData(7L), "mi-token-secreto");
 
         String confirmUrl = (String) ctxCaptor.getValue().getVariable("confirmUrl");
         assertThat(confirmUrl).contains("mi-token-secreto");
